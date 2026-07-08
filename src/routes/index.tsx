@@ -18,8 +18,8 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "GridGuide AI — Smart Learning for Power System & SCADA Interns" },
       { name: "description", content: "Learn SCADA, EMS, Protection, Communication Systems and Power Grid Operations from one AI-powered platform built for UPSLDC, PGCIL and RLDC interns." },
-      { property: "og:title", content: "GridGuide AI — Smart Learning for Power System Interns" },
-      { property: "og:description", content: "SCADA, EMS, Protection, PMU/WAMS and Substation Automation in one platform." },
+      { property: "og:title", content: "GridGuide AI — Smart Learning for Power System & SCADA Interns" },
+      { property: "og:description", content: "Learn SCADA, EMS, Protection, Communication Systems and Power Grid Operations from one AI-powered platform built for UPSLDC, PGCIL and RLDC interns." },
     ],
   }),
   component: Landing,
