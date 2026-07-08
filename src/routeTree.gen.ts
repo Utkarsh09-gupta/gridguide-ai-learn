@@ -9,38 +9,204 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QuizRouteImport } from './routes/quiz'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as LearningPathRouteImport } from './routes/learning-path'
+import { Route as EquipmentRouteImport } from './routes/equipment'
+import { Route as DownloadsRouteImport } from './routes/downloads'
+import { Route as AiAssistantRouteImport } from './routes/ai-assistant'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EquipmentIndexRouteImport } from './routes/equipment.index'
+import { Route as EquipmentIdRouteImport } from './routes/equipment.$id'
 
+const QuizRoute = QuizRouteImport.update({
+  id: '/quiz',
+  path: '/quiz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearningPathRoute = LearningPathRouteImport.update({
+  id: '/learning-path',
+  path: '/learning-path',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipmentRoute = EquipmentRouteImport.update({
+  id: '/equipment',
+  path: '/equipment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DownloadsRoute = DownloadsRouteImport.update({
+  id: '/downloads',
+  path: '/downloads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiAssistantRoute = AiAssistantRouteImport.update({
+  id: '/ai-assistant',
+  path: '/ai-assistant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EquipmentIndexRoute = EquipmentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => EquipmentRoute,
+} as any)
+const EquipmentIdRoute = EquipmentIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => EquipmentRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/ai-assistant': typeof AiAssistantRoute
+  '/downloads': typeof DownloadsRoute
+  '/equipment': typeof EquipmentRouteWithChildren
+  '/learning-path': typeof LearningPathRoute
+  '/profile': typeof ProfileRoute
+  '/quiz': typeof QuizRoute
+  '/equipment/$id': typeof EquipmentIdRoute
+  '/equipment/': typeof EquipmentIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/ai-assistant': typeof AiAssistantRoute
+  '/downloads': typeof DownloadsRoute
+  '/learning-path': typeof LearningPathRoute
+  '/profile': typeof ProfileRoute
+  '/quiz': typeof QuizRoute
+  '/equipment/$id': typeof EquipmentIdRoute
+  '/equipment': typeof EquipmentIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/ai-assistant': typeof AiAssistantRoute
+  '/downloads': typeof DownloadsRoute
+  '/equipment': typeof EquipmentRouteWithChildren
+  '/learning-path': typeof LearningPathRoute
+  '/profile': typeof ProfileRoute
+  '/quiz': typeof QuizRoute
+  '/equipment/$id': typeof EquipmentIdRoute
+  '/equipment/': typeof EquipmentIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/ai-assistant'
+    | '/downloads'
+    | '/equipment'
+    | '/learning-path'
+    | '/profile'
+    | '/quiz'
+    | '/equipment/$id'
+    | '/equipment/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/ai-assistant'
+    | '/downloads'
+    | '/learning-path'
+    | '/profile'
+    | '/quiz'
+    | '/equipment/$id'
+    | '/equipment'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/ai-assistant'
+    | '/downloads'
+    | '/equipment'
+    | '/learning-path'
+    | '/profile'
+    | '/quiz'
+    | '/equipment/$id'
+    | '/equipment/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AiAssistantRoute: typeof AiAssistantRoute
+  DownloadsRoute: typeof DownloadsRoute
+  EquipmentRoute: typeof EquipmentRouteWithChildren
+  LearningPathRoute: typeof LearningPathRoute
+  ProfileRoute: typeof ProfileRoute
+  QuizRoute: typeof QuizRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/quiz': {
+      id: '/quiz'
+      path: '/quiz'
+      fullPath: '/quiz'
+      preLoaderRoute: typeof QuizRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learning-path': {
+      id: '/learning-path'
+      path: '/learning-path'
+      fullPath: '/learning-path'
+      preLoaderRoute: typeof LearningPathRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipment': {
+      id: '/equipment'
+      path: '/equipment'
+      fullPath: '/equipment'
+      preLoaderRoute: typeof EquipmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/downloads': {
+      id: '/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof DownloadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-assistant': {
+      id: '/ai-assistant'
+      path: '/ai-assistant'
+      fullPath: '/ai-assistant'
+      preLoaderRoute: typeof AiAssistantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +214,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/equipment/': {
+      id: '/equipment/'
+      path: '/'
+      fullPath: '/equipment/'
+      preLoaderRoute: typeof EquipmentIndexRouteImport
+      parentRoute: typeof EquipmentRoute
+    }
+    '/equipment/$id': {
+      id: '/equipment/$id'
+      path: '/$id'
+      fullPath: '/equipment/$id'
+      preLoaderRoute: typeof EquipmentIdRouteImport
+      parentRoute: typeof EquipmentRoute
+    }
   }
 }
 
+interface EquipmentRouteChildren {
+  EquipmentIdRoute: typeof EquipmentIdRoute
+  EquipmentIndexRoute: typeof EquipmentIndexRoute
+}
+
+const EquipmentRouteChildren: EquipmentRouteChildren = {
+  EquipmentIdRoute: EquipmentIdRoute,
+  EquipmentIndexRoute: EquipmentIndexRoute,
+}
+
+const EquipmentRouteWithChildren = EquipmentRoute._addFileChildren(
+  EquipmentRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AiAssistantRoute: AiAssistantRoute,
+  DownloadsRoute: DownloadsRoute,
+  EquipmentRoute: EquipmentRouteWithChildren,
+  LearningPathRoute: LearningPathRoute,
+  ProfileRoute: ProfileRoute,
+  QuizRoute: QuizRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
