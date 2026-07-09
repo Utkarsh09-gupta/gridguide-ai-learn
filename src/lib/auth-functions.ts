@@ -8,17 +8,21 @@ export const getCurrentUserFn = createServerFn()
     const { users } = await import("../db/schema");
     const { eq } = await import("drizzle-orm");
 
-    const event = getEvent();
-    const session = getCookie(event, "session");
-    if (!session) return null;
-    const userId = decryptSession(session);
-    if (!userId) return null;
-    
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
-    if (!user) return null;
-    
-    const { passwordHash, ...safeUser } = user;
-    return safeUser;
+    try {
+      const event = getEvent();
+      const session = getCookie(event, "session");
+      if (!session) return null;
+      const userId = decryptSession(session);
+      if (!userId) return null;
+      
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      if (!user) return null;
+      
+      const { passwordHash, ...safeUser } = user;
+      return safeUser;
+    } catch (e) {
+      return null;
+    }
   });
 
 export const loginFn = createServerFn()
@@ -160,8 +164,7 @@ export const getModuleTopicsFn = createServerFn()
   .validator((data: any) => data as { moduleId: string })
   .handler(async ({ data }) => {
     const { moduleId } = data;
-    const { getEvent, getCookie } = await import("vinxi/http");
-    const { decryptSession } = await import("./auth");
+    console.log("getModuleTopicsFn handler executed. moduleId:", moduleId);
     const { db } = await import("../db/client");
     const { topics, modules, userProgress } = await import("../db/schema");
     const { eq, and } = await import("drizzle-orm");
@@ -181,25 +184,28 @@ export const getModuleTopicsFn = createServerFn()
     let completedList: string[] = [];
     let progressPercent = 0;
     
-    const event = getEvent();
-    const session = getCookie(event, "session");
-    if (session) {
-      const userId = decryptSession(session);
-      if (userId) {
-        const [prog] = await db
-          .select()
-          .from(userProgress)
-          .where(and(eq(userProgress.userId, userId), eq(userProgress.moduleId, moduleId)));
-        
-        if (prog) {
-          try {
+    try {
+      const { getEvent, getCookie } = await import("vinxi/http");
+      const { decryptSession } = await import("./auth");
+      const event = getEvent();
+      const session = getCookie(event, "session");
+      if (session) {
+        const userId = decryptSession(session);
+        if (userId) {
+          const [prog] = await db
+            .select()
+            .from(userProgress)
+            .where(and(eq(userProgress.userId, userId), eq(userProgress.moduleId, moduleId)));
+          
+          if (prog) {
             completedList = JSON.parse(prog.completedTopics);
             progressPercent = prog.progress;
-          } catch (e) {
-            completedList = [];
           }
         }
       }
+    } catch (e) {
+      completedList = [];
+      progressPercent = 0;
     }
 
     return {

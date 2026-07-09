@@ -122,9 +122,12 @@ Answer the user's question, using the study material above as your primary refer
 export const Route = createFileRoute("/learning-path/$moduleId")({
   loader: async ({ params }) => {
     try {
+      console.log("learning-path.$moduleId loader called with moduleId:", params.moduleId);
       const data = await getModuleTopicsFn({ data: { moduleId: params.moduleId } });
+      console.log("learning-path.$moduleId loader returned successfully:", !!data);
       return data;
     } catch (err) {
+      console.error("LOADER ERROR IN ROUTE:", err);
       throw err;
     }
   },
