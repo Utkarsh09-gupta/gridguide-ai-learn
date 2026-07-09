@@ -39,22 +39,25 @@ async function main() {
 
   // 3. Seed Equipment
   const equipmentList = [
-    { id: "rtu", name: "RTU", full: "Remote Terminal Unit", tag: "SCADA", description: "Field device that acquires data from substation and communicates to control centre." },
-    { id: "ied", name: "IED", full: "Intelligent Electronic Device", tag: "Automation", description: "Microprocessor-based controller handling protection, control and monitoring." },
-    { id: "ct", name: "CT", full: "Current Transformer", tag: "Measurement", description: "Steps down primary current for metering and protection." },
-    { id: "pt", name: "PT", full: "Potential Transformer", tag: "Measurement", description: "Steps down primary voltage for metering and protection." },
-    { id: "relay", name: "Relay", full: "Protective Relay", tag: "Protection", description: "Detects faults and issues trip commands to breakers." },
-    { id: "cb", name: "Circuit Breaker", full: "Circuit Breaker", tag: "Switching", description: "Interrupts fault current and isolates faulty section." },
-    { id: "ups", name: "UPS", full: "Uninterruptible Power Supply", tag: "Aux Supply", description: "Provides clean, backed-up AC/DC power to critical loads." },
-    { id: "battery-bank", name: "Battery Bank", full: "Station Battery Bank", tag: "DC Supply", description: "Backup DC source for protection, control and comms." },
-    { id: "router", name: "Router", full: "Router", tag: "Comms", description: "Routes IP traffic between substation LANs and WAN." },
-    { id: "switch", name: "Switch", full: "Ethernet Switch", tag: "Comms", description: "Managed switch for station and process bus networks." },
-    { id: "firewall", name: "Firewall", full: "Firewall", tag: "OT Security", description: "Filters and segments OT traffic per IEC 62443 zones." },
-    { id: "otdr", name: "OTDR", full: "Optical Time-Domain Reflectometer", tag: "Fiber", description: "Characterizes optical fibers, faults, splices and losses." },
+    { id: "rtu", name: "RTU", full: "Remote Terminal Unit", tag: "SCADA", description: "Field device that acquires data from substation and communicates to control centre.", imageUrl: "/images/equipment/rtu.png" },
+    { id: "ied", name: "IED", full: "Intelligent Electronic Device", tag: "Automation", description: "Microprocessor-based controller handling protection, control and monitoring.", imageUrl: "/images/equipment/ied.png" },
+    { id: "ct", name: "CT", full: "Current Transformer", tag: "Measurement", description: "Steps down primary current for metering and protection.", imageUrl: "/images/equipment/ct.png" },
+    { id: "pt", name: "PT", full: "Potential Transformer", tag: "Measurement", description: "Steps down primary voltage for metering and protection.", imageUrl: "/images/equipment/pt.png" },
+    { id: "relay", name: "Relay", full: "Protective Relay", tag: "Protection", description: "Detects faults and issues trip commands to breakers.", imageUrl: "/images/equipment/relay.png" },
+    { id: "cb", name: "Circuit Breaker", full: "Circuit Breaker", tag: "Switching", description: "Interrupts fault current and isolates faulty section.", imageUrl: "/images/equipment/cb.png" },
+    { id: "ups", name: "UPS", full: "Uninterruptible Power Supply", tag: "Aux Supply", description: "Provides clean, backed-up AC/DC power to critical loads.", imageUrl: "/images/equipment/ups.png" },
+    { id: "battery-bank", name: "Battery Bank", full: "Station Battery Bank", tag: "DC Supply", description: "Backup DC source for protection, control and comms.", imageUrl: "/images/equipment/battery-bank.png" },
+    { id: "router", name: "Router", full: "Router", tag: "Comms", description: "Routes IP traffic between substation LANs and WAN.", imageUrl: "/images/equipment/router.png" },
+    { id: "switch", name: "Switch", full: "Ethernet Switch", tag: "Comms", description: "Managed switch for station and process bus networks.", imageUrl: "/images/equipment/switch.png" },
+    { id: "firewall", name: "Firewall", full: "Firewall", tag: "OT Security", description: "Filters and segments OT traffic per IEC 62443 zones.", imageUrl: "/images/equipment/firewall.png" },
+    { id: "otdr", name: "OTDR", full: "Optical Time-Domain Reflectometer", tag: "Fiber", description: "Characterizes optical fibers, faults, splices and losses.", imageUrl: "/images/equipment/otdr.png" },
   ];
 
   for (const eq of equipmentList) {
-    await db.insert(equipment).values(eq).onConflictDoNothing();
+    await db.insert(equipment).values(eq).onConflictDoUpdate({
+      target: equipment.id,
+      set: { imageUrl: eq.imageUrl }
+    });
   }
 
   // 4. Seed User Progress

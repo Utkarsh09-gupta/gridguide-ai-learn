@@ -295,3 +295,32 @@ export const completeTopicFn = createServerFn()
       progress: progressPercent,
     };
   });
+
+export const getEquipmentListFn = createServerFn()
+  .handler(async () => {
+    const { db } = await import("../db/client");
+    const { equipment } = await import("../db/schema");
+    try {
+      const list = await db.select().from(equipment);
+      return list;
+    } catch (e) {
+      console.error("Error in getEquipmentListFn:", e);
+      return [];
+    }
+  });
+
+export const getEquipmentByIdFn = createServerFn()
+  .validator((data: any) => data as { id: string })
+  .handler(async ({ data }) => {
+    const { id } = data;
+    const { db } = await import("../db/client");
+    const { equipment } = await import("../db/schema");
+    const { eq } = await import("drizzle-orm");
+    try {
+      const [item] = await db.select().from(equipment).where(eq(equipment.id, id));
+      return item || null;
+    } catch (e) {
+      console.error("Error in getEquipmentByIdFn:", e);
+      return null;
+    }
+  });

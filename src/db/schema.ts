@@ -28,6 +28,7 @@ export const equipment = sqliteTable("equipment", {
   tag: text("tag").notNull(),
   description: text("description").notNull(),
   detailedContent: text("detailed_content"),
+  imageUrl: text("image_url"),
 });
 
 export const userProgress = sqliteTable("user_progress", {

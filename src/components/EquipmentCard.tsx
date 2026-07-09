@@ -1,10 +1,40 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
-import type { Equipment } from "@/data/equipment";
+import {
+  Cpu, CircuitBoard, Gauge, Activity, ShieldAlert, Power,
+  BatteryCharging, Battery, Router as RouterIcon, Network, ShieldCheck, Waypoints
+} from "lucide-react";
 
-export function EquipmentCard({ e, i = 0 }: { e: Equipment; i?: number }) {
-  const Icon = e.icon;
+export interface DbEquipment {
+  id: string;
+  name: string;
+  full: string;
+  tag: string;
+  description: string;
+  imageUrl?: string | null;
+}
+
+export function getEquipmentIcon(id: string) {
+  const icons: Record<string, any> = {
+    rtu: Cpu,
+    ied: CircuitBoard,
+    ct: Gauge,
+    pt: Activity,
+    relay: ShieldAlert,
+    cb: Power,
+    ups: BatteryCharging,
+    "battery-bank": Battery,
+    router: RouterIcon,
+    switch: Network,
+    firewall: ShieldCheck,
+    otdr: Waypoints,
+  };
+  return icons[id] || Cpu;
+}
+
+export function EquipmentCard({ e, i = 0 }: { e: DbEquipment; i?: number }) {
+  const Icon = getEquipmentIcon(e.id);
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -15,18 +45,25 @@ export function EquipmentCard({ e, i = 0 }: { e: Equipment; i?: number }) {
       <Link
         to="/equipment/$id"
         params={{ id: e.id }}
-        className="glass block rounded-2xl p-4 h-full group hover:border-electric/40 transition-colors"
+        className="glass block rounded-2xl p-3 h-full group hover:border-electric/40 transition-colors overflow-hidden"
       >
-        <div className="flex items-center justify-between">
-          <div className="grid place-items-center w-11 h-11 rounded-xl bg-white/5 border border-white/10 text-cyan group-hover:text-electric transition-colors">
-            <Icon className="w-5 h-5" />
+        <div className="w-full h-32 rounded-xl overflow-hidden relative mb-3 bg-navy/60 border border-white/5">
+          <img
+            src={e.imageUrl || `/images/equipment/${e.id}.png`}
+            alt={e.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute top-2 left-2 grid place-items-center w-8 h-8 rounded-lg bg-navy/80 backdrop-blur-md border border-white/10 text-cyan group-hover:text-electric transition-colors">
+            <Icon className="w-4 h-4" />
           </div>
-          <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+          <div className="absolute top-2 right-2 grid place-items-center w-7 h-7 rounded-lg bg-navy/80 backdrop-blur-md border border-white/10 text-muted-foreground group-hover:text-foreground transition-colors">
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </div>
         </div>
-        <div className="mt-3">
-          <div className="text-[11px] uppercase tracking-wider text-electric">{e.tag}</div>
-          <h3 className="font-semibold text-base">{e.name}</h3>
-          <p className="text-xs text-muted-foreground">{e.full}</p>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-electric font-semibold">{e.tag}</div>
+          <h3 className="font-bold text-sm text-foreground group-hover:text-cyan transition-colors mt-0.5">{e.name}</h3>
+          <p className="text-xs text-muted-foreground line-clamp-1">{e.full}</p>
         </div>
       </Link>
     </motion.div>
