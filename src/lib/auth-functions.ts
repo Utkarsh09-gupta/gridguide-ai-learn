@@ -386,41 +386,23 @@ export const uploadFileFn = createServerFn({ method: "POST" })
     await verifyAdminClearanceOrThrow();
 
     const file = data.get("file") as File;
-    const folder = (data.get("folder") as string) || "uploads";
-    
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const fs = await import("fs/promises");
-    const path = await import("path");
-
-    let destFolder = "";
-    if (folder === "logbook") {
-      destFolder = path.join(process.cwd(), "public", "images", "logbook");
-    } else if (folder === "equipment") {
-      destFolder = path.join(process.cwd(), "public", "images", "equipment");
-    } else if (folder === "downloads") {
-      destFolder = path.join(process.cwd(), "public", "downloads");
-    } else {
-      destFolder = path.join(process.cwd(), "public", "images", "uploads");
-    }
-
-    await fs.mkdir(destFolder, { recursive: true });
-
     const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const filename = `${Date.now()}-${cleanName}`;
-    const filePath = path.join(destFolder, filename);
-    await fs.writeFile(filePath, buffer);
 
-    if (folder === "downloads") {
-      return { filename, url: `/downloads/${filename}` };
-    } else if (folder === "logbook") {
-      return { filename, url: `/images/logbook/${filename}` };
-    } else if (folder === "equipment") {
-      return { filename, url: `/images/equipment/${filename}` };
-    } else {
-      return { filename, url: `/images/uploads/${filename}` };
-    }
+    const { db } = await import("../db/client");
+    const { attachments } = await import("../db/schema");
+
+    await db.insert(attachments).values({
+      id: filename,
+      data: buffer,
+      mimeType: file.type || "application/octet-stream",
+      createdAt: Date.now(),
+    });
+
+    return { filename, url: `/api/files/${filename}` };
   });
 
 export const getDownloadsFn = createServerFn()

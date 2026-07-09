@@ -47,7 +47,7 @@ function Downloads() {
                 </div>
               </div>
               <Button size="sm" variant="outline" className="glass border-white/15" asChild>
-                <a href={f.filename.startsWith("http") ? f.filename : `/downloads/${f.filename}`} download={f.filename.replace(/^\d+-/, "")}>
+                <a href={f.filename.startsWith("http") ? f.filename : `/api/files/${f.filename}`} download={f.filename.replace(/^\d+-/, "")}>
                   <Download className="w-4 h-4 mr-1.5" /> Get
                 </a>
               </Button>

@@ -30,6 +30,7 @@ import { Route as EquipmentIdRouteImport } from './routes/equipment.$id'
 import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminEquipmentRouteImport } from './routes/admin.equipment'
 import { Route as AdminDownloadsRouteImport } from './routes/admin.downloads'
+import { Route as ApiFilesFilenameRouteImport } from './routes/api.files.$filename'
 
 const QuizRoute = QuizRouteImport.update({
   id: '/quiz',
@@ -136,6 +137,11 @@ const AdminDownloadsRoute = AdminDownloadsRouteImport.update({
   path: '/downloads',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiFilesFilenameRoute = ApiFilesFilenameRouteImport.update({
+  id: '/api/files/$filename',
+  path: '/api/files/$filename',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/equipment/': typeof EquipmentIndexRoute
   '/learning-path/': typeof LearningPathIndexRoute
   '/logbook/': typeof LogbookIndexRoute
+  '/api/files/$filename': typeof ApiFilesFilenameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/equipment': typeof EquipmentIndexRoute
   '/learning-path': typeof LearningPathIndexRoute
   '/logbook': typeof LogbookIndexRoute
+  '/api/files/$filename': typeof ApiFilesFilenameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -202,6 +210,7 @@ export interface FileRoutesById {
   '/equipment/': typeof EquipmentIndexRoute
   '/learning-path/': typeof LearningPathIndexRoute
   '/logbook/': typeof LogbookIndexRoute
+  '/api/files/$filename': typeof ApiFilesFilenameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -227,6 +236,7 @@ export interface FileRouteTypes {
     | '/equipment/'
     | '/learning-path/'
     | '/logbook/'
+    | '/api/files/$filename'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/equipment'
     | '/learning-path'
     | '/logbook'
+    | '/api/files/$filename'
   id:
     | '__root__'
     | '/'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/equipment/'
     | '/learning-path/'
     | '/logbook/'
+    | '/api/files/$filename'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -283,6 +295,7 @@ export interface RootRouteChildren {
   LogbookRoute: typeof LogbookRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   QuizRoute: typeof QuizRoute
+  ApiFilesFilenameRoute: typeof ApiFilesFilenameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -434,6 +447,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDownloadsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/files/$filename': {
+      id: '/api/files/$filename'
+      path: '/api/files/$filename'
+      fullPath: '/api/files/$filename'
+      preLoaderRoute: typeof ApiFilesFilenameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -506,6 +526,7 @@ const rootRouteChildren: RootRouteChildren = {
   LogbookRoute: LogbookRouteWithChildren,
   ProfileRoute: ProfileRoute,
   QuizRoute: QuizRoute,
+  ApiFilesFilenameRoute: ApiFilesFilenameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

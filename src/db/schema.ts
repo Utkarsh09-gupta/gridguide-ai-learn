@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, primaryKey } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, primaryKey, blob } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -102,6 +102,13 @@ export const downloads = sqliteTable("downloads", {
   size: text("size").notNull(),
   type: text("type").notNull(),
   topic: text("topic").notNull(),
+  createdAt: integer("created_at").notNull(),
+});
+
+export const attachments = sqliteTable("attachments", {
+  id: text("id").primaryKey(),
+  data: blob("data", { mode: "buffer" }).notNull(),
+  mimeType: text("mime_type").notNull(),
   createdAt: integer("created_at").notNull(),
 });
 
