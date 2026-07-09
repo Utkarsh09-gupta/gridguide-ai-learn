@@ -1,7 +1,10 @@
 import { motion } from "motion/react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Clock, ArrowUpRight } from "lucide-react";
+import { 
+  Clock, ArrowUpRight, Zap, CalendarClock, Monitor, Wifi, 
+  Cpu, BatteryCharging, ShieldCheck, Building2, Activity, Radio, BookOpen 
+} from "lucide-react";
 import type { Module } from "@/data/modules";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
@@ -12,8 +15,21 @@ const diffColor: Record<string, string> = {
   Advanced: "bg-electric/20 text-electric border-electric/30",
 };
 
-export function ModuleCard({ m, i = 0 }: { m: Module; i?: number }) {
-  const Icon = m.icon;
+const iconMap: Record<string, any> = {
+  "power-fundamentals": Zap,
+  "sldc-dispatch": CalendarClock,
+  "scada": Monitor,
+  "communication": Wifi,
+  "ems": Cpu,
+  "power-supply": BatteryCharging,
+  "protection": ShieldCheck,
+  "substation-automation": Building2,
+  "pmu-wams": Activity,
+  "grid-operation": Radio
+};
+
+export function ModuleCard({ m, i = 0 }: { m: any; i?: number }) {
+  const Icon = m.icon || iconMap[m.id] || BookOpen;
   return (
     <Link
       to="/learning-path/$moduleId"
