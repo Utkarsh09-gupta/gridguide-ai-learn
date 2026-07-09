@@ -39,24 +39,312 @@ async function main() {
 
   // 3. Seed Equipment
   const equipmentList = [
-    { id: "rtu", name: "RTU", full: "Remote Terminal Unit", tag: "SCADA", description: "Field device that acquires data from substation and communicates to control centre.", imageUrl: "/images/equipment/rtu.png" },
-    { id: "ied", name: "IED", full: "Intelligent Electronic Device", tag: "Automation", description: "Microprocessor-based controller handling protection, control and monitoring.", imageUrl: "/images/equipment/ied.png" },
-    { id: "ct", name: "CT", full: "Current Transformer", tag: "Measurement", description: "Steps down primary current for metering and protection.", imageUrl: "/images/equipment/ct.png" },
-    { id: "pt", name: "PT", full: "Potential Transformer", tag: "Measurement", description: "Steps down primary voltage for metering and protection.", imageUrl: "/images/equipment/pt.png" },
-    { id: "relay", name: "Relay", full: "Protective Relay", tag: "Protection", description: "Detects faults and issues trip commands to breakers.", imageUrl: "/images/equipment/relay.png" },
-    { id: "cb", name: "Circuit Breaker", full: "Circuit Breaker", tag: "Switching", description: "Interrupts fault current and isolates faulty section.", imageUrl: "/images/equipment/cb.png" },
-    { id: "ups", name: "UPS", full: "Uninterruptible Power Supply", tag: "Aux Supply", description: "Provides clean, backed-up AC/DC power to critical loads.", imageUrl: "/images/equipment/ups.png" },
-    { id: "battery-bank", name: "Battery Bank", full: "Station Battery Bank", tag: "DC Supply", description: "Backup DC source for protection, control and comms.", imageUrl: "/images/equipment/battery-bank.png" },
-    { id: "router", name: "Router", full: "Router", tag: "Comms", description: "Routes IP traffic between substation LANs and WAN.", imageUrl: "/images/equipment/router.png" },
-    { id: "switch", name: "Switch", full: "Ethernet Switch", tag: "Comms", description: "Managed switch for station and process bus networks.", imageUrl: "/images/equipment/switch.png" },
-    { id: "firewall", name: "Firewall", full: "Firewall", tag: "OT Security", description: "Filters and segments OT traffic per IEC 62443 zones.", imageUrl: "/images/equipment/firewall.png" },
-    { id: "otdr", name: "OTDR", full: "Optical Time-Domain Reflectometer", tag: "Fiber", description: "Characterizes optical fibers, faults, splices and losses.", imageUrl: "/images/equipment/otdr.png" },
+    {
+      id: "rtu",
+      name: "RTU",
+      full: "Remote Terminal Unit",
+      tag: "SCADA",
+      description: "Field device that acquires telemetry from substation and communicates to control centre.",
+      imageUrl: "/images/equipment/rtu.png",
+      standards: "IEC 60870-5-101, IEC 60870-5-104, DNP3 Serial/TCP, IEEE 1613",
+      interfaces: "RS-232, RS-485, RJ45 Ethernet, Dry Contact DI, Relay DO, 4-20mA Analog Inputs",
+      detailedContent: `### Working Principle & Telemetry
+The Remote Terminal Unit (RTU) serves as the primary gateway between substation field equipment and the SCADA Master Station. It monitors digital inputs (isolator state, breaker position), analog inputs (active power, voltage, temperature via transducers), and executes supervisory control outputs (breaker open/close command relays).
+
+### Typical Wiring & Interface
+Analog transducers convert voltage (e.g., 110V AC) and current (e.g., 1A AC) into proportional DC current loops (4-20 mA) connected to the RTU's AI cards. Digital status inputs are wired through optical couplers (opto-isolators) to prevent electrical surges from entering the main board, usually operating at 110V or 220V DC auxiliary power.
+
+### Commissioning Steps & Loop Testing
+1. **DI Loop Test**: Manually operate the breaker in the switchyard and verify that the status change (Open/Closed contact) registers correctly on the RTU's local diagnostics utility.
+2. **DO Command Check**: Perform command execution tests using the RTU command relay outputs into trip/close coils, checking interlock conditions.
+3. **Transducer Calibration**: Verify that the 4-20mA input corresponds exactly to the primary active power values.
+4. **Point-to-Point Testing**: Establish communication with the SLDC Master Station over IEC 104 and verify telemetry mapping for every single database point.
+
+### Common Substation Faults & Troubleshooting
+* **Link Down / Telemetry Failure**: Verify ping response over the WAN gate. Check terminal connections on RS-485 serial ports or fiber switch transceivers.
+* **Contact Chattering**: An input fluctuates rapidly due to a faulty mechanical limit switch. Implement debounce timers (e.g., 50ms) in the RTU configuration to filter out spikes.
+* **Analog Offset**: Value drifts due to thermal degradation of the transducers. Re-calibrate or replace the transducer module.`
+    },
+    {
+      id: "ied",
+      name: "IED",
+      full: "Intelligent Electronic Device",
+      tag: "Automation",
+      description: "Microprocessor-based controller handling protection, control and monitoring.",
+      imageUrl: "/images/equipment/ied.png",
+      standards: "IEC 61850 Edition 2, IEC 60255, IEEE C37.90",
+      interfaces: "Fiber Optic LC, RJ45 Ethernet, IRIG-B Time Sync, RS-485",
+      detailedContent: `### Working Principle & Telemetry
+An Intelligent Electronic Device (IED) is a microprocessor-based controller designed to execute protection logic, bay monitoring, and interlocking controls. It samples local current and voltage inputs at high sampling rates (e.g. 64 or 128 samples per cycle), runs numerical algorithms, and triggers rapid outputs (e.g. trips breaker in < 15ms during faults).
+
+### Substation Automation Integration
+Under the IEC 61850 standard, IEDs publish high-speed multicast peer-to-peer messages called **GOOSE** (Generic Object Oriented Substation Events) over the local Ethernet LAN. GOOSE is used for horizontal interlocks and breaker failure protection, bypassing physical copper trip wiring.
+
+### Commissioning Steps & Loop Testing
+1. **Secondary Injection Test**: Inject simulated three-phase current and voltage into the IED terminal blocks using a test kit (e.g. Omicron) to verify pickup thresholds and trip curves (Overcurrent, Distance).
+2. **GOOSE Latency Validation**: Trace ethernet traffic using a packet analyzer to ensure GOOSE transmission latency is below 3 milliseconds.
+3. **Time Synchronization**: Ensure the local clock matches the GPS master clock within 1 microsecond using IRIG-B or PTP (IEEE 1588).
+
+### Common Substation Faults & Troubleshooting
+* **Time Sync Loss**: Shows "GPS Sync Fault". Check active optical antenna cable or PTP master clock availability.
+* **MMS Connection Drop**: Station HMI loses control of the IED. Verify network switch port settings and VLAN memberships.
+* **Trip Circuit Blocked**: Alert indicating circuit breakdown. Troubleshoot trip coil circuit continuity.`
+    },
+    {
+      id: "ct",
+      name: "CT",
+      full: "Current Transformer",
+      tag: "Measurement",
+      description: "Steps down primary current for metering and protection.",
+      imageUrl: "/images/equipment/ct.png",
+      standards: "IEC 61869-2, IEEE C57.13, IS 2705",
+      interfaces: "Primary Terminal Studs, Secondary Terminal Box, Metallic Ground Straps",
+      detailedContent: `### Working Principle & Telemetry
+A Current Transformer (CT) is an instrument transformer that steps down bulk primary line current (e.g., 800A) to a standardized secondary value (1A or 5A) for protection relays and measuring instruments.
+
+### Technical Specifications
+* **Metering CTs**: Designed with high accuracy (Class 0.2S or 0.5) over a small range (e.g., 5% to 120% of rated current). They saturate quickly to protect sensitive energy meters during faults.
+* **Protection CTs**: Designed with high saturation limits (Class 5P20 or PS). They must reproduce primary fault current waveforms accurately (e.g., up to 20 times rated current) so protective relays can trip.
+
+### Commissioning Steps & Testing
+1. **Insulation Resistance (Megger)**: Measure insulation between primary-to-ground, secondary-to-ground, and primary-to-secondary.
+2. **Ratio & Polarity Test**: Inject a primary current and verify the secondary current matches the ratio. Use the flick method to check current direction (polarity).
+3. **Knee-point Voltage (KPV) Test**: For class PS CTs, plot the magnetization curve to identify the voltage point where a 10% increase in voltage results in a 50% increase in magnetizing current.
+
+### Common Substation Faults & Safety Warnings
+* **Secondary Open Circuit**: **CRITICAL DANGER**. If a CT secondary is open-circuited under load, the primary current acts entirely as magnetizing current, creating extreme high-voltage spikes across the open terminals that can cause insulation breakdown, explosions, and lethal electric shock. Always short-circuit secondary cores before working on meters or relays.
+* **Moisture Ingress**: Water entering the terminal box causes grounding leakage and ratio errors. Ensure proper seals.`
+    },
+    {
+      id: "pt",
+      name: "PT",
+      full: "Potential Transformer",
+      tag: "Measurement",
+      description: "Steps down primary voltage for metering and protection.",
+      imageUrl: "/images/equipment/pt.png",
+      standards: "IEC 61869-3, IEEE C57.13",
+      interfaces: "High-Voltage Terminal Stud, Secondary Winding Junction Box",
+      detailedContent: `### Working Principle & Telemetry
+A Potential Transformer (PT), or Voltage Transformer (VT), steps down high system voltages (e.g., 400kV / $\\sqrt{3}$) to standardized secondary voltages (e.g., 110V / $\\sqrt{3}$) for protection relays, synchrocheck inputs, and meters.
+
+### Substation Configuration
+PTs are connected in parallel with the power line. Electromagnetic PTs are common at lower voltages, while Capacitor Voltage Transformers (CVTs) are used at higher transmission levels (132kV to 765kV) because the capacitor stack acts both as a voltage divider and a coupling capacitor for PLCC communication signals.
+
+### Commissioning Steps & Testing
+1. **Insulation Resistance**: Measure winding-to-ground and primary-to-secondary insulation.
+2. **Ratio and Phase Angle Error**: Inject a known voltage on the primary and measure secondary terminal outputs to verify accuracy classes.
+3. **Dielectric Dissipation Factor (Tan Delta)**: Test the insulating oil or solid insulation to identify aging or moisture accumulation.
+
+### Common Substation Faults & Troubleshooting
+* **VT Fuse Blown**: Blown secondary fuses result in a drop in measured voltage, triggering "Voltage Transformer Fuse Fail" alerts on numerical relays and disabling voltage-dependent protection functions (like distance relays).
+* **Ferroresonance**: An unstable low-frequency oscillation between the non-linear inductance of the PT core and line capacitance. Mitigated by installing damping resistors across the open-delta secondary.`
+    },
+    {
+      id: "relay",
+      name: "Relay",
+      full: "Protective Relay",
+      tag: "Protection",
+      description: "Detects faults and issues trip commands to breakers.",
+      imageUrl: "/images/equipment/relay.png",
+      standards: "IEC 60255, IEEE C37.90, ANSI Device Codes (21, 50, 51, 87)",
+      interfaces: "Dry Contact Outputs, CT/PT Current/Voltage Inputs, RJ45 Ethernet",
+      detailedContent: `### Working Principle & Telemetry
+A digital protective relay continuously monitors currents and voltages from CTs and PTs. It compares calculated values with user-configured pickup settings. If a fault is detected (e.g. overcurrent, phase mismatch, distance zone violation), it energizes high-speed contact outputs, completing the trip circuit to open the circuit breaker.
+
+### ANSI Protection Schemes
+* **ANSI 21**: Distance Protection (calculates line impedance $Z = V/I$ to detect faults within specific zones).
+* **ANSI 87**: Differential Protection (compares current entering and leaving a zone, used for transformers and generators).
+* **ANSI 50/51**: Instantaneous and Time-Delay Overcurrent.
+
+### Commissioning Steps & Testing
+1. **Secondary Current Injection**: Verify pickup thresholds and timing characteristics of ANSI 50/51 elements using injection test sets.
+2. **Trip Scheme Test**: Inject fault parameters and verify that the relay physically triggers the breaker's trip coil.
+3. **Virtual Interlocks**: Verify that the binary input logic correctly blocks or enables specific protection zones.
+
+### Common Substation Faults & Troubleshooting
+* **Maloperation (False Tripping)**: Relay trips for a fault outside its protected zone. Check settings, CT saturation, or directional wiring polarities.
+* **Auxiliary DC Supply Fail**: Total loss of auxiliary DC control voltage. Relay loses power and protection is compromised. Set up redundant DC feeders.`
+    },
+    {
+      id: "cb",
+      name: "Circuit Breaker",
+      full: "Circuit Breaker",
+      tag: "Switching",
+      description: "Interrupts fault current and isolates faulty section.",
+      imageUrl: "/images/equipment/cb.png",
+      standards: "IEC 62271-100, IEC 62271-1, IEEE C37.04",
+      interfaces: "Close Coil, Trip Coil 1, Trip Coil 2, Auxiliary Contacts, SF6 Gas Valve",
+      detailedContent: `### Working Principle & Telemetry
+The Circuit Breaker is the primary switching device responsible for closing and interrupting transmission circuits under normal load or extreme fault conditions (fault currents of up to 40kA or 50kA).
+
+### Arc Extinction & SF6 Gas
+To safely extinguish the high-temperature plasma arc generated when contacts separate, high-voltage breakers use Sulfur Hexafluoride (SF6) gas. SF6 has excellent dielectric strength and electronegativity, capturing free electrons to suppress the arc within milliseconds.
+
+### Commissioning Steps & Testing
+1. **Breaker Timing Test**: Measure the exact open and close times of the contacts in milliseconds. Main contact opening time must be less than 25-30ms.
+2. **Contact Resistance Measurement (CRM)**: Inject high DC current (e.g., 100A) through the closed contacts and measure microvolt drops to determine contact wear and health (should be < 50 micro-ohms).
+3. **SF6 Leakage & Dew Point Test**: Verify gas pressure and measure moisture content to prevent internal flashovers.
+
+### Common Substation Faults & Troubleshooting
+* **SF6 Low Gas Pressure Lockout**: If gas pressure drops below critical limits (e.g. 5.0 bar), the lockout relay prevents the breaker from operating. Locate leaks and top up SF6 gas.
+* **Trip/Close Coil Burnout**: If a coil remains energized due to a stuck auxiliary limit switch, it burns out. Troubleshoot switch logic and replace the coil.
+* **Spring Charging Motor Failure**: The mechanical spring fails to charge after an operation, disabling the next auto-reclose sequence. Check motor supply fuses and microswitch alignment.`
+    },
+    {
+      id: "ups",
+      name: "UPS",
+      full: "Uninterruptible Power Supply",
+      tag: "Aux Supply",
+      description: "Provides clean, backed-up AC/DC power to critical loads.",
+      imageUrl: "/images/equipment/ups.png",
+      standards: "IEC 62040-3, IEEE 1184",
+      interfaces: "Dry Contact Alarms, Modbus TCP Network Card, SNMP, AC Output Busbars",
+      detailedContent: `### Working Principle & Telemetry
+The Uninterruptible Power Supply (UPS) provides continuous, regulated, clean AC power to critical substation auxiliary loads, including SCADA servers, communication panels, HMI terminals, and firewall switches.
+
+### Double Conversion Topology
+Under normal conditions, the incoming AC grid power is rectified to DC, which charges the battery bank and feeds the static inverter. The inverter reconstructs a pure sine wave AC output. If the grid fails, the batteries feed the inverter instantly with zero transition time.
+
+### Commissioning Steps & Testing
+1. **Static Bypass Transfer Test**: Verify that the UPS switches load to static bypass without interrupting power if the inverter fails or experiences a heavy short circuit.
+2. **Inverter Load Run**: Load the UPS to 100% capacity using a portable load bank and monitor output voltage stability.
+
+### Common Substation Faults & Troubleshooting
+* **Battery Overtemperature**: High ambient temperature degrades batteries. Monitor HVAC systems and activate thermal alarms.
+* **Static Bypass Locked**: Static switch fails to transfer due to phase asynchronous mismatch. Verify input grid frequency synchronization limits.`
+    },
+    {
+      id: "battery-bank",
+      name: "Battery Bank",
+      full: "Station Battery Bank",
+      tag: "DC Supply",
+      description: "Backup DC source for protection, control and comms.",
+      imageUrl: "/images/equipment/battery-bank.png",
+      standards: "IEEE 450 (Vented Lead-Acid), IEEE 1188 (VRLA), IEC 60896",
+      interfaces: "Copper Busbar Intercell Connectors, Terminal Cables, Temperature Probe",
+      detailedContent: `### Working Principle & Telemetry
+The Station Battery Bank serves as the final, absolute line of defense for substation safety. It supplies critical 110V or 220V DC power to trip coils, numerical relays, emergency lighting, and PLCC terminals. Unlike AC power, the battery-backed DC network must remain active even during a total blackout to allow protection relays to operate.
+
+### Battery Room Safety & Maintenance
+Batteries are configured in series to achieve the target DC voltage (e.g. 55 lead-acid cells of 2V each for a 110V system). Vented lead-acid (VLA) cells emit explosive hydrogen gas during charging, requiring dedicated ventilation systems.
+
+### Commissioning Steps & Testing
+1. **Specific Gravity Check**: For flooded cells, measure the electrolyte specific gravity using a hydrometer to confirm state of charge (nominal ~1.20 to 1.22).
+2. **Capacity Discharge Test (Battery Load Run)**: Discharge the battery bank at a constant current rate for 8 or 10 hours to measure actual capacity in Ampere-hours (Ah).
+3. **Cell Impedance Test**: Measure internal resistance to locate high-resistance cells.
+
+### Common Substation Faults & Troubleshooting
+* **DC Earth Fault**: Insulation breakdown on field wiring causes positive or negative DC leads to touch ground. This can cause false tripping of breakers if a second fault occurs. Locate and isolate the faulty terminal using a ground fault locator.
+* **Sulphation**: White lead sulphate crystals form on battery plates due to prolonged undercharging, causing loss of capacity. Apply equalization charge.`
+    },
+    {
+      id: "router",
+      name: "Router",
+      full: "Router",
+      tag: "Comms",
+      description: "Routes IP traffic between substation LANs and WAN.",
+      imageUrl: "/images/equipment/router.png",
+      standards: "IEC 61850-3, IEEE 1613, RFC 2544",
+      interfaces: "10G SFP+ Fiber Ports, RJ45 Gigabit Ethernet, Serial Console Port, Dual DC Power Inlets",
+      detailedContent: `### Working Principle & Telemetry
+An industrial substation router routes network traffic between local substation networks (LANs) and the wide-area network (WAN) communicating with State and Regional Load Dispatch Centers.
+
+### Substation Environmental Hardening
+Substation routers must comply with **IEC 61850-3** and **IEEE 1613** standards, which require protection against electromagnetic interference (EMI), electrostatic discharges (ESD), and wide temperature ranges (-40°C to +85°C) without using internal cooling fans.
+
+### Commissioning Steps & Testing
+1. **WAN Link Latency Check**: Test network latency (ping/traceroute) to the SLDC gateway, verifying it matches SLA limits (typically < 10-15ms).
+2. **Redundant Path Failover**: Simulate WAN fiber failure and verify that routing protocols (like OSPF or BGP) failover to the backup link within 1 second.
+
+### Common Substation Faults & Troubleshooting
+* **Link Flapping**: Fiber optic link drops and recovers repeatedly. Check patch cords, clean the SFP transceiver faces, or measure optic Rx power.
+* **Routing Loop**: Telemetry data packets bounce between routers, overloading CPU. Verify routing table parameters and interface metrics.`
+    },
+    {
+      id: "switch",
+      name: "Switch",
+      full: "Ethernet Switch",
+      tag: "Comms",
+      description: "Managed switch for station and process bus networks.",
+      imageUrl: "/images/equipment/switch.png",
+      standards: "IEC 61850-3, IEEE 1613, IEEE 1588v2 PTP",
+      interfaces: "SFP Fiber Optic Ports, RJ45 Ethernet, VLAN Access/Trunk Configs",
+      detailedContent: `### Working Principle & Telemetry
+Substation Ethernet Switches connect bay level IEDs, bay controllers, and HMIs together inside a local network.
+
+### IEC 61850 Station Bus and Process Bus
+* **Station Bus (VLAN 10/20)**: Carries MMS control messages and GOOSE tripping signals.
+* **Process Bus (VLAN 30)**: Carries high-speed Sampled Values (SV) from Merging Units to relays, requiring strict bandwidth reservation and Quality of Service (QoS) priorities.
+* **IEEE 1588 PTP**: Distributes nanosecond-accurate GPS time stamps across the Ethernet network for synchrophasor applications.
+
+### Commissioning Steps & Testing
+1. **VLAN Segmentation**: Verify that Sampled Values and GOOSE traffic are isolated into separate VLANs to prevent switch port buffer overflows.
+2. **RSTP/MSTP Loop Prevention**: Enable Rapid Spanning Tree Protocol and simulate a link cut to verify recovery in < 50ms.
+
+### Common Substation Faults & Troubleshooting
+* **Broadcast Storm**: A loop in switch wiring creates a flood of broadcast frames, freezing all telemetry. Trace network loops and enable broadcast storm control.
+* **Packet Drops / Buffer Overruns**: Switch drops GOOSE messages during grid disturbances. Configure strict QoS priority queues for GOOSE traffic.`
+    },
+    {
+      id: "firewall",
+      name: "Firewall",
+      full: "Firewall",
+      tag: "OT Security",
+      description: "Filters and segments OT traffic per IEC 62443 zones.",
+      imageUrl: "/images/equipment/firewall.png",
+      standards: "IEC 62443-4-2, NERC CIP Compliance, IEC 61850-3",
+      interfaces: "WAN Port, DMZ Port, LAN Interface, Console Port",
+      detailedContent: `### Working Principle & Cyber Security
+The OT Firewall protects the substation control system from unauthorized network access. It performs Deep Packet Inspection (DPI) on SCADA protocols, ensuring only legitimate commands (e.g. read telemetry) are permitted, while blocking malicious commands (e.g. unauthorized firmware upload or breaker trip commands).
+
+### Security Segmentation (IEC 62443)
+OT firewalls separate the network into security zones:
+* **Zone 1 (Process Bus)**: Extremely restricted, no external access.
+* **Zone 2 (Station Bus)**: Restricts HMI and SCADA server traffic.
+* **Zone 3 (DMZ)**: Houses intermediate database gateways for external SLDC connections.
+
+### Commissioning Steps & Testing
+1. **Ruleset Audit**: Verify the firewall policy blocklist blocks unauthorized IP addresses, telnet, and web access.
+2. **DPI Logic Verification**: Inject simulated IEC 104 write commands from outside the authorized range and verify they are blocked and logged.
+
+### Common Substation Faults & Troubleshooting
+* **False Positive Blocking**: The firewall blocks legitimate telemetry traffic due to an overly restrictive protocol signature. Audit firewall logs and adjust rule parameters.
+* **Syslog Overflow**: The firewall fills its memory logs, slowing down performance. Set up remote log collection servers.`
+    },
+    {
+      id: "otdr",
+      name: "OTDR",
+      full: "Optical Time-Domain Reflectometer",
+      tag: "Fiber",
+      description: "Characterizes optical fibers, faults, splices and losses.",
+      imageUrl: "/images/equipment/otdr.png",
+      standards: "IEC 60793-1-40, ITU-T G.652 (Single Mode)",
+      interfaces: "FC/UPC Optical Adaptor, USB Export Interface, Handheld Screen",
+      detailedContent: `### Working Principle & Telemetry
+An Optical Time-Domain Reflectometer (OTDR) is an instrument used to characterize optical fiber communication paths (such as OPGW - Optical Ground Wire) running along transmission lines.
+
+### Technical Function
+It injects a series of high-power optical pulses into the fiber and measures the intensity of light reflected back (Rayleigh backscattering and Fresnel reflections). This allows engineers to measure total line loss, joint loss, splice health, and identify the exact distance to a fiber break or fault.
+
+### Commissioning Steps & Testing
+1. **Fiber Characterization**: Connect the OTDR to the patch panel at the substation control room and launch testing pulses.
+2. **Trace Analysis**: Verify splice losses (must be < 0.05 dB per splice) and identify the position of macro-bends.
+
+### Common Substation Faults & Troubleshooting
+* **Dirty Fiber Connector**: Causes a massive initial reflection spike, blocking the rest of the fiber trace. Clean the connector tip with lint-free wipes and alcohol.
+* **High Insertion Loss**: Indicates fiber stress due to incorrect tension on the OPGW line. Readjust mechanical clamps.`
+    }
   ];
 
   for (const eq of equipmentList) {
     await db.insert(equipment).values(eq).onConflictDoUpdate({
       target: equipment.id,
-      set: { imageUrl: eq.imageUrl }
+      set: {
+        imageUrl: eq.imageUrl,
+        standards: eq.standards,
+        interfaces: eq.interfaces,
+        detailedContent: eq.detailedContent,
+      }
     });
   }
 

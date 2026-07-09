@@ -28,6 +28,8 @@ export const equipment = sqliteTable("equipment", {
   tag: text("tag").notNull(),
   description: text("description").notNull(),
   detailedContent: text("detailed_content"),
+  standards: text("standards"),
+  interfaces: text("interfaces"),
   imageUrl: text("image_url"),
 });
 

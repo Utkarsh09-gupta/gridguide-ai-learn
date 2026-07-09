@@ -36,6 +36,72 @@ export const Route = createFileRoute("/equipment/$id")({
 function EquipmentDetail() {
   const { item } = Route.useLoaderData();
   const Icon = getEquipmentIcon(item.id);
+
+  // Split standards and interfaces lists
+  const standardsList = item.standards
+    ? item.standards.split(",").map((s: string) => s.trim())
+    : ["No industrial standards listed"];
+
+  const interfacesList = item.interfaces
+    ? item.interfaces.split(",").map((inf: string) => inf.trim())
+    : ["No telemetry interfaces listed"];
+
+  // Custom markdown renderer for detailed content
+  const renderMarkdown = (md: string) => {
+    if (!md) return null;
+    return md
+      .split("\n\n")
+      .map((block, i) => {
+        const trimmed = block.trim();
+        if (trimmed.startsWith("### ")) {
+          return (
+            <h3 key={i} className="text-lg font-bold text-cyan mt-6 mb-2 border-b border-white/5 pb-1">
+              {trimmed.replace("### ", "")}
+            </h3>
+          );
+        }
+        if (trimmed.startsWith("#### ")) {
+          return (
+            <h4 key={i} className="text-base font-semibold text-electric mt-4 mb-1">
+              {trimmed.replace("#### ", "")}
+            </h4>
+          );
+        }
+        if (trimmed.startsWith("* ") || trimmed.startsWith("- ")) {
+          return (
+            <ul key={i} className="list-disc pl-5 my-2 space-y-1 text-sm text-muted-foreground">
+              {trimmed.split("\n").map((li, idx) => (
+                <li key={idx}>{li.replace(/^[\*\-]\s+/, "")}</li>
+              ))}
+            </ul>
+          );
+        }
+        if (trimmed.startsWith("1. ")) {
+          return (
+            <ol key={i} className="list-decimal pl-5 my-2 space-y-1 text-sm text-muted-foreground">
+              {trimmed.split("\n").map((li, idx) => (
+                <li key={idx}>{li.replace(/^\d+\.\s+/, "")}</li>
+              ))}
+            </ol>
+          );
+        }
+        if (trimmed.startsWith("```")) {
+          const lines = trimmed.split("\n");
+          const code = lines.slice(1, -1).join("\n");
+          return (
+            <pre key={i} className="my-4 p-4 rounded-xl bg-navy-deep/80 border border-white/10 overflow-x-auto text-xs font-mono text-cyan">
+              {code}
+            </pre>
+          );
+        }
+        return (
+          <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-3">
+            {trimmed}
+          </p>
+        );
+      });
+  };
+
   return (
     <PageShell eyebrow={item.tag} title={item.full} description={item.description}>
       <Button asChild variant="ghost" size="sm" className="-ml-3 mb-6">
@@ -57,32 +123,46 @@ function EquipmentDetail() {
             </div>
           </div>
 
-          <h3 className="text-lg font-semibold inline-flex items-center gap-2">
-            <Info className="w-4 h-4 text-cyan" /> Overview
+          <h3 className="text-xl font-bold inline-flex items-center gap-2 text-cyan">
+            <Info className="w-5 h-5" /> Technical Specification Guide
           </h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Detailed learning material for the {item.name} ({item.full}) is on its way. This placeholder page will include working principles, typical wiring, protocols, standards and interview questions.
-          </p>
+          <div className="mt-4 prose prose-invert max-w-none">
+            {item.detailedContent ? (
+              renderMarkdown(item.detailedContent)
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                Detailed learning material for the {item.name} ({item.full}) is currently loading...
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4">
           <div className="glass rounded-2xl p-5">
-            <h4 className="font-semibold inline-flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-cyan" /> Related notes
+            <h4 className="font-semibold inline-flex items-center gap-2 text-electric">
+              <BookOpen className="w-4 h-4 text-cyan" /> Standards & References
             </h4>
             <ul className="mt-3 text-sm text-muted-foreground space-y-2">
-              <li>· Standards & references</li>
-              <li>· Commissioning checklist</li>
-              <li>· Common faults</li>
+              {standardsList.map((std: string, idx: number) => (
+                <li key={idx} className="flex items-start gap-1.5">
+                  <span className="text-cyan font-bold select-none">•</span>
+                  <span>{std}</span>
+                </li>
+              ))}
             </ul>
           </div>
+
           <div className="glass rounded-2xl p-5">
-            <h4 className="font-semibold inline-flex items-center gap-2">
-              <Cable className="w-4 h-4 text-cyan" /> Interfaces
+            <h4 className="font-semibold inline-flex items-center gap-2 text-electric">
+              <Cable className="w-4 h-4 text-cyan" /> Interfaces & Protocols
             </h4>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Typical interfaces and protocols will be documented here.
-            </p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {interfacesList.map((inf: string, idx: number) => (
+                <span key={idx} className="px-2 py-1 text-[11px] font-mono rounded bg-white/5 border border-white/10 text-cyan">
+                  {inf}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </div>
