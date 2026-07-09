@@ -19,6 +19,7 @@ import { Route as AiAssistantRouteImport } from './routes/ai-assistant'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EquipmentIndexRouteImport } from './routes/equipment.index'
+import { Route as LearningPathModuleIdRouteImport } from './routes/learning-path.$moduleId'
 import { Route as EquipmentIdRouteImport } from './routes/equipment.$id'
 
 const QuizRoute = QuizRouteImport.update({
@@ -71,6 +72,11 @@ const EquipmentIndexRoute = EquipmentIndexRouteImport.update({
   path: '/',
   getParentRoute: () => EquipmentRoute,
 } as any)
+const LearningPathModuleIdRoute = LearningPathModuleIdRouteImport.update({
+  id: '/$moduleId',
+  path: '/$moduleId',
+  getParentRoute: () => LearningPathRoute,
+} as any)
 const EquipmentIdRoute = EquipmentIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -84,10 +90,11 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/downloads': typeof DownloadsRoute
   '/equipment': typeof EquipmentRouteWithChildren
-  '/learning-path': typeof LearningPathRoute
+  '/learning-path': typeof LearningPathRouteWithChildren
   '/profile': typeof ProfileRoute
   '/quiz': typeof QuizRoute
   '/equipment/$id': typeof EquipmentIdRoute
+  '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
   '/equipment/': typeof EquipmentIndexRoute
 }
 export interface FileRoutesByTo {
@@ -96,10 +103,11 @@ export interface FileRoutesByTo {
   '/ai-assistant': typeof AiAssistantRoute
   '/auth': typeof AuthRoute
   '/downloads': typeof DownloadsRoute
-  '/learning-path': typeof LearningPathRoute
+  '/learning-path': typeof LearningPathRouteWithChildren
   '/profile': typeof ProfileRoute
   '/quiz': typeof QuizRoute
   '/equipment/$id': typeof EquipmentIdRoute
+  '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
   '/equipment': typeof EquipmentIndexRoute
 }
 export interface FileRoutesById {
@@ -110,10 +118,11 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/downloads': typeof DownloadsRoute
   '/equipment': typeof EquipmentRouteWithChildren
-  '/learning-path': typeof LearningPathRoute
+  '/learning-path': typeof LearningPathRouteWithChildren
   '/profile': typeof ProfileRoute
   '/quiz': typeof QuizRoute
   '/equipment/$id': typeof EquipmentIdRoute
+  '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
   '/equipment/': typeof EquipmentIndexRoute
 }
 export interface FileRouteTypes {
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/quiz'
     | '/equipment/$id'
+    | '/learning-path/$moduleId'
     | '/equipment/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/quiz'
     | '/equipment/$id'
+    | '/learning-path/$moduleId'
     | '/equipment'
   id:
     | '__root__'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/quiz'
     | '/equipment/$id'
+    | '/learning-path/$moduleId'
     | '/equipment/'
   fileRoutesById: FileRoutesById
 }
@@ -164,7 +176,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DownloadsRoute: typeof DownloadsRoute
   EquipmentRoute: typeof EquipmentRouteWithChildren
-  LearningPathRoute: typeof LearningPathRoute
+  LearningPathRoute: typeof LearningPathRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   QuizRoute: typeof QuizRoute
 }
@@ -241,6 +253,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipmentIndexRouteImport
       parentRoute: typeof EquipmentRoute
     }
+    '/learning-path/$moduleId': {
+      id: '/learning-path/$moduleId'
+      path: '/$moduleId'
+      fullPath: '/learning-path/$moduleId'
+      preLoaderRoute: typeof LearningPathModuleIdRouteImport
+      parentRoute: typeof LearningPathRoute
+    }
     '/equipment/$id': {
       id: '/equipment/$id'
       path: '/$id'
@@ -265,6 +284,18 @@ const EquipmentRouteWithChildren = EquipmentRoute._addFileChildren(
   EquipmentRouteChildren,
 )
 
+interface LearningPathRouteChildren {
+  LearningPathModuleIdRoute: typeof LearningPathModuleIdRoute
+}
+
+const LearningPathRouteChildren: LearningPathRouteChildren = {
+  LearningPathModuleIdRoute: LearningPathModuleIdRoute,
+}
+
+const LearningPathRouteWithChildren = LearningPathRoute._addFileChildren(
+  LearningPathRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -272,7 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DownloadsRoute: DownloadsRoute,
   EquipmentRoute: EquipmentRouteWithChildren,
-  LearningPathRoute: LearningPathRoute,
+  LearningPathRoute: LearningPathRouteWithChildren,
   ProfileRoute: ProfileRoute,
   QuizRoute: QuizRoute,
 }

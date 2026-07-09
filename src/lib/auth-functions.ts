@@ -155,3 +155,137 @@ export const getUserProfileStatsFn = createServerFn()
       },
     };
   });
+
+export const getModuleTopicsFn = createServerFn()
+  .validator((data: any) => data as { moduleId: string })
+  .handler(async ({ data }) => {
+    const { moduleId } = data;
+    const { getEvent, getCookie } = await import("vinxi/http");
+    const { decryptSession } = await import("./auth");
+    const { db } = await import("../db/client");
+    const { topics, modules, userProgress } = await import("../db/schema");
+    const { eq, and } = await import("drizzle-orm");
+
+    // Fetch module info
+    const [mod] = await db.select().from(modules).where(eq(modules.id, moduleId));
+    if (!mod) throw new Error("Module not found");
+
+    // Fetch all topics/lessons in this module
+    const moduleTopics = await db
+      .select()
+      .from(topics)
+      .where(eq(topics.moduleId, moduleId))
+      .orderBy(topics.index);
+
+    // Fetch user progress if logged in
+    let completedList: string[] = [];
+    let progressPercent = 0;
+    
+    const event = getEvent();
+    const session = getCookie(event, "session");
+    if (session) {
+      const userId = decryptSession(session);
+      if (userId) {
+        const [prog] = await db
+          .select()
+          .from(userProgress)
+          .where(and(eq(userProgress.userId, userId), eq(userProgress.moduleId, moduleId)));
+        
+        if (prog) {
+          try {
+            completedList = JSON.parse(prog.completedTopics);
+            progressPercent = prog.progress;
+          } catch (e) {
+            completedList = [];
+          }
+        }
+      }
+    }
+
+    return {
+      module: mod,
+      topics: moduleTopics,
+      completedTopics: completedList,
+      progress: progressPercent,
+    };
+  });
+
+export const completeTopicFn = createServerFn()
+  .validator((data: any) => data as { moduleId: string; topicId: string; completed: boolean })
+  .handler(async ({ data }) => {
+    const { moduleId, topicId, completed } = data;
+    const { getEvent, getCookie } = await import("vinxi/http");
+    const { decryptSession } = await import("./auth");
+    const { db } = await import("../db/client");
+    const { topics, userProgress } = await import("../db/schema");
+    const { eq, and } = await import("drizzle-orm");
+
+    const event = getEvent();
+    const session = getCookie(event, "session");
+    if (!session) throw new Error("Authentication required");
+    const userId = decryptSession(session);
+    if (!userId) throw new Error("Authentication required");
+
+    // Fetch all topics in this module to compute percentage
+    const allTopics = await db
+      .select({ id: topics.id })
+      .from(topics)
+      .where(eq(topics.moduleId, moduleId));
+    
+    if (allTopics.length === 0) throw new Error("No topics in this module");
+
+    // Fetch existing progress
+    let completedList: string[] = [];
+    const [prog] = await db
+      .select()
+      .from(userProgress)
+      .where(and(eq(userProgress.userId, userId), eq(userProgress.moduleId, moduleId)));
+
+    if (prog) {
+      try {
+        completedList = JSON.parse(prog.completedTopics);
+      } catch (e) {
+        completedList = [];
+      }
+    }
+
+    // Update completed topics list
+    if (completed) {
+      if (!completedList.includes(topicId)) {
+        completedList.push(topicId);
+      }
+    } else {
+      completedList = completedList.filter((id) => id !== topicId);
+    }
+
+    // Compute progress percent
+    const progressPercent = Math.round((completedList.length / allTopics.length) * 100);
+
+    // Upsert user progress row
+    if (prog) {
+      await db
+        .update(userProgress)
+        .set({
+          progress: progressPercent,
+          completedTopics: JSON.stringify(completedList),
+          updatedAt: Date.now(),
+        })
+        .where(and(eq(userProgress.userId, userId), eq(userProgress.moduleId, moduleId)));
+    } else {
+      await db
+        .insert(userProgress)
+        .values({
+          userId,
+          moduleId,
+          progress: progressPercent,
+          completedTopics: JSON.stringify(completedList),
+          updatedAt: Date.now(),
+        });
+    }
+
+    return {
+      success: true,
+      completedTopics: completedList,
+      progress: progressPercent,
+    };
+  });

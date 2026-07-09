@@ -71,3 +71,12 @@ export const chatHistory = sqliteTable("chat_history", {
   messageText: text("message_text").notNull(),
   timestamp: integer("timestamp").notNull(),
 });
+
+export const topics = sqliteTable("topics", {
+  id: text("id").primaryKey(),
+  moduleId: text("module_id").notNull().references(() => modules.id),
+  index: integer("index").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(), // Detailed markdown content
+  timeToRead: text("time_to_read").notNull(), // e.g. "15 mins"
+});
