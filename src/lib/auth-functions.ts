@@ -786,15 +786,15 @@ export const sendGeneralAIMessageFn = createServerFn()
     messages: { role: "user" | "ai"; text: string }[] 
   })
   .handler(async ({ data }) => {
+    if (!import.meta.env.SSR) throw new Error("Server execution only");
     const { messages } = data;
-    const { getEvent, getCookie } = await import("vinxi/http");
+    const { getSessionCookie } = await import("./auth-cookies.server");
     const { decryptSession } = await import("./auth");
     const fs = await import("fs");
     const path = await import("path");
 
     // 1. Auth check
-    const event = getEvent();
-    const session = getCookie(event, "session");
+    const session = await getSessionCookie();
     if (!session) throw new Error("Authentication required");
     const userId = decryptSession(session);
     if (!userId) throw new Error("Authentication required");

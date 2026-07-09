@@ -23,15 +23,15 @@ export const sendGroundedAIMessageFn = createServerFn()
     moduleTitle: string 
   })
   .handler(async ({ data }) => {
+    if (!import.meta.env.SSR) throw new Error("Server execution only");
     const { message, lessonTitle, lessonContent, moduleTitle } = data;
-    const { getEvent, getCookie } = await import("vinxi/http");
+    const { getSessionCookie } = await import("../lib/auth-cookies.server");
     const { decryptSession } = await import("../lib/auth");
     const fs = await import("fs");
     const path = await import("path");
 
     // 1. Auth check
-    const event = getEvent();
-    const session = getCookie(event, "session");
+    const session = await getSessionCookie();
     if (!session) throw new Error("Authentication required");
     const userId = decryptSession(session);
     if (!userId) throw new Error("Authentication required");
