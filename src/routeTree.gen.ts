@@ -17,14 +17,19 @@ import { Route as EquipmentRouteImport } from './routes/equipment'
 import { Route as DownloadsRouteImport } from './routes/downloads'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AiAssistantRouteImport } from './routes/ai-assistant'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LogbookIndexRouteImport } from './routes/logbook.index'
 import { Route as LearningPathIndexRouteImport } from './routes/learning-path.index'
 import { Route as EquipmentIndexRouteImport } from './routes/equipment.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as LogbookIdRouteImport } from './routes/logbook.$id'
 import { Route as LearningPathModuleIdRouteImport } from './routes/learning-path.$moduleId'
 import { Route as EquipmentIdRouteImport } from './routes/equipment.$id'
+import { Route as AdminLogsRouteImport } from './routes/admin.logs'
+import { Route as AdminEquipmentRouteImport } from './routes/admin.equipment'
+import { Route as AdminDownloadsRouteImport } from './routes/admin.downloads'
 
 const QuizRoute = QuizRouteImport.update({
   id: '/quiz',
@@ -66,6 +71,11 @@ const AiAssistantRoute = AiAssistantRouteImport.update({
   path: '/ai-assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -91,6 +101,11 @@ const EquipmentIndexRoute = EquipmentIndexRouteImport.update({
   path: '/',
   getParentRoute: () => EquipmentRoute,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const LogbookIdRoute = LogbookIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -106,10 +121,26 @@ const EquipmentIdRoute = EquipmentIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => EquipmentRoute,
 } as any)
+const AdminLogsRoute = AdminLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEquipmentRoute = AdminEquipmentRouteImport.update({
+  id: '/equipment',
+  path: '/equipment',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDownloadsRoute = AdminDownloadsRouteImport.update({
+  id: '/downloads',
+  path: '/downloads',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/ai-assistant': typeof AiAssistantRoute
   '/auth': typeof AuthRoute
   '/downloads': typeof DownloadsRoute
@@ -118,9 +149,13 @@ export interface FileRoutesByFullPath {
   '/logbook': typeof LogbookRouteWithChildren
   '/profile': typeof ProfileRoute
   '/quiz': typeof QuizRoute
+  '/admin/downloads': typeof AdminDownloadsRoute
+  '/admin/equipment': typeof AdminEquipmentRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/equipment/$id': typeof EquipmentIdRoute
   '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
   '/logbook/$id': typeof LogbookIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/equipment/': typeof EquipmentIndexRoute
   '/learning-path/': typeof LearningPathIndexRoute
   '/logbook/': typeof LogbookIndexRoute
@@ -133,9 +168,13 @@ export interface FileRoutesByTo {
   '/downloads': typeof DownloadsRoute
   '/profile': typeof ProfileRoute
   '/quiz': typeof QuizRoute
+  '/admin/downloads': typeof AdminDownloadsRoute
+  '/admin/equipment': typeof AdminEquipmentRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/equipment/$id': typeof EquipmentIdRoute
   '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
   '/logbook/$id': typeof LogbookIdRoute
+  '/admin': typeof AdminIndexRoute
   '/equipment': typeof EquipmentIndexRoute
   '/learning-path': typeof LearningPathIndexRoute
   '/logbook': typeof LogbookIndexRoute
@@ -144,6 +183,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/ai-assistant': typeof AiAssistantRoute
   '/auth': typeof AuthRoute
   '/downloads': typeof DownloadsRoute
@@ -152,9 +192,13 @@ export interface FileRoutesById {
   '/logbook': typeof LogbookRouteWithChildren
   '/profile': typeof ProfileRoute
   '/quiz': typeof QuizRoute
+  '/admin/downloads': typeof AdminDownloadsRoute
+  '/admin/equipment': typeof AdminEquipmentRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/equipment/$id': typeof EquipmentIdRoute
   '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
   '/logbook/$id': typeof LogbookIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/equipment/': typeof EquipmentIndexRoute
   '/learning-path/': typeof LearningPathIndexRoute
   '/logbook/': typeof LogbookIndexRoute
@@ -164,6 +208,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/ai-assistant'
     | '/auth'
     | '/downloads'
@@ -172,9 +217,13 @@ export interface FileRouteTypes {
     | '/logbook'
     | '/profile'
     | '/quiz'
+    | '/admin/downloads'
+    | '/admin/equipment'
+    | '/admin/logs'
     | '/equipment/$id'
     | '/learning-path/$moduleId'
     | '/logbook/$id'
+    | '/admin/'
     | '/equipment/'
     | '/learning-path/'
     | '/logbook/'
@@ -187,9 +236,13 @@ export interface FileRouteTypes {
     | '/downloads'
     | '/profile'
     | '/quiz'
+    | '/admin/downloads'
+    | '/admin/equipment'
+    | '/admin/logs'
     | '/equipment/$id'
     | '/learning-path/$moduleId'
     | '/logbook/$id'
+    | '/admin'
     | '/equipment'
     | '/learning-path'
     | '/logbook'
@@ -197,6 +250,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/ai-assistant'
     | '/auth'
     | '/downloads'
@@ -205,9 +259,13 @@ export interface FileRouteTypes {
     | '/logbook'
     | '/profile'
     | '/quiz'
+    | '/admin/downloads'
+    | '/admin/equipment'
+    | '/admin/logs'
     | '/equipment/$id'
     | '/learning-path/$moduleId'
     | '/logbook/$id'
+    | '/admin/'
     | '/equipment/'
     | '/learning-path/'
     | '/logbook/'
@@ -216,6 +274,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AiAssistantRoute: typeof AiAssistantRoute
   AuthRoute: typeof AuthRoute
   DownloadsRoute: typeof DownloadsRoute
@@ -284,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AiAssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -319,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipmentIndexRouteImport
       parentRoute: typeof EquipmentRoute
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/logbook/$id': {
       id: '/logbook/$id'
       path: '/$id'
@@ -340,8 +413,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipmentIdRouteImport
       parentRoute: typeof EquipmentRoute
     }
+    '/admin/logs': {
+      id: '/admin/logs'
+      path: '/logs'
+      fullPath: '/admin/logs'
+      preLoaderRoute: typeof AdminLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/equipment': {
+      id: '/admin/equipment'
+      path: '/equipment'
+      fullPath: '/admin/equipment'
+      preLoaderRoute: typeof AdminEquipmentRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/downloads': {
+      id: '/admin/downloads'
+      path: '/downloads'
+      fullPath: '/admin/downloads'
+      preLoaderRoute: typeof AdminDownloadsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminDownloadsRoute: typeof AdminDownloadsRoute
+  AdminEquipmentRoute: typeof AdminEquipmentRoute
+  AdminLogsRoute: typeof AdminLogsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminDownloadsRoute: AdminDownloadsRoute,
+  AdminEquipmentRoute: AdminEquipmentRoute,
+  AdminLogsRoute: AdminLogsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface EquipmentRouteChildren {
   EquipmentIdRoute: typeof EquipmentIdRoute
@@ -387,6 +497,7 @@ const LogbookRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   AiAssistantRoute: AiAssistantRoute,
   AuthRoute: AuthRoute,
   DownloadsRoute: DownloadsRoute,

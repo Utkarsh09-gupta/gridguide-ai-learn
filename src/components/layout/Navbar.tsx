@@ -68,6 +68,17 @@ export function Navbar() {
                 </Link>
               );
             })}
+            {user?.role === "admin" && (
+              <Link
+                to="/admin"
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-sm text-yellow-400 hover:text-yellow-300 font-semibold transition-colors border border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10 ml-1",
+                  path.startsWith("/admin") && "text-yellow-300 bg-yellow-500/20"
+                )}
+              >
+                Admin
+              </Link>
+            )}
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
@@ -97,6 +108,17 @@ export function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-white/10" />
+                  {user.role === "admin" && (
+                    <>
+                      <DropdownMenuItem asChild className="hover:bg-white/5 cursor-pointer">
+                        <Link to="/admin" className="flex items-center w-full text-yellow-400 font-medium">
+                          <Zap className="mr-2 h-4 w-4 text-yellow-400" />
+                          <span>Admin Panel</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-white/10" />
+                    </>
+                  )}
                   <DropdownMenuItem asChild className="hover:bg-white/5 cursor-pointer">
                     <Link to="/profile" className="flex items-center w-full">
                       <UserIcon className="mr-2 h-4 w-4 text-cyan" />
@@ -148,6 +170,16 @@ export function Navbar() {
                   </Link>
                 );
               })}
+              {user?.role === "admin" && (
+                <Link
+                  to="/admin"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-yellow-500/10 text-yellow-400 font-medium"
+                >
+                  <Zap className="w-4 h-4 text-yellow-400" />
+                  Admin Panel
+                </Link>
+              )}
               {user && (
                 <>
                   <div className="h-px bg-white/10 my-2" />

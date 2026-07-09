@@ -116,8 +116,42 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-import { AuthProvider } from "../hooks/useAuth";
+import { AuthProvider, useAuth } from "../hooks/useAuth";
 import { Toaster } from "../components/ui/sonner";
+import { useRouterState, useNavigate } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
+import { PageShell } from "../components/layout/PageShell";
+
+function AuthGuard({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const isPublicPath = path === "/" || path.startsWith("/auth");
+    if (!loading && !user && !isPublicPath) {
+      navigate({ to: "/auth", search: { redirect: path } });
+    }
+  }, [user, loading, path, navigate]);
+
+  const isPublicPath = path === "/" || path.startsWith("/auth");
+
+  if (loading && !isPublicPath) {
+    return (
+      <PageShell eyebrow="Security" title="Authenticating..." description="Verifying portal access credentials...">
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-cyan animate-spin" />
+        </div>
+      </PageShell>
+    );
+  }
+
+  if (!user && !isPublicPath) {
+    return null;
+  }
+
+  return <>{children}</>;
+}
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -125,8 +159,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <AuthGuard>
+          <Outlet />
+        </AuthGuard>
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>

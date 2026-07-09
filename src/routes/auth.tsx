@@ -10,6 +10,11 @@ import { useAuth } from "../hooks/useAuth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      redirect: (search.redirect as string) || undefined,
+    };
+  },
   head: () => ({
     meta: [
       { title: "Portal Access — GridGuide AI" },
@@ -39,12 +44,13 @@ function AuthPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const { login, signup, user } = useAuth();
+  const { redirect } = Route.useSearch();
   const navigate = useNavigate();
   const router = useRouter();
 
-  // If already logged in, redirect to profile
+  // If already logged in, redirect to home or redirect destination
   if (user) {
-    navigate({ to: "/profile" });
+    navigate({ to: redirect || "/" });
     return null;
   }
 
@@ -70,7 +76,7 @@ function AuthPage() {
         toast.success("Account created successfully!");
       }
       router.invalidate();
-      navigate({ to: "/profile" });
+      navigate({ to: redirect || "/" });
     } catch (err: any) {
       toast.error(err.message || "An authentication error occurred.");
     } finally {
@@ -243,37 +249,6 @@ function AuthPage() {
                 )}
               </Button>
             </form>
-
-            {/* Quick Demo Assist */}
-            <div className="mt-6 border-t border-white/10 pt-4 text-center space-y-3">
-              <span className="text-xs text-muted-foreground block">
-                Testing the system? Use email: <code className="text-cyan bg-white/5 px-1 py-0.5 rounded font-mono">aarav.kumar@upsldc.in</code> password: <code className="text-cyan bg-white/5 px-1 py-0.5 rounded font-mono">testing</code>
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  setEmail("aarav.kumar@upsldc.in");
-                  setPassword("testing");
-                  setSubmitting(true);
-                  try {
-                    await login("aarav.kumar@upsldc.in", "testing");
-                    toast.success("Successfully logged in!");
-                    router.invalidate();
-                    navigate({ to: "/profile" });
-                  } catch (err: any) {
-                    toast.error(err.message || "An authentication error occurred.");
-                  } finally {
-                    setSubmitting(false);
-                  }
-                }}
-                className="glass border-white/15 text-xs text-cyan hover:bg-white/5 inline-flex items-center gap-1.5 w-full justify-center"
-              >
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: "3s" }} />
-                Quick Auto-Login (Demo)
-              </Button>
-            </div>
           </motion.div>
         </div>
       </section>

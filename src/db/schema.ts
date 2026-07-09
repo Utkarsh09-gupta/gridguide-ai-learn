@@ -6,6 +6,7 @@ export const users = sqliteTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   organization: text("organization").default("UPSLDC"),
+  role: text("role").default("user").notNull(), // 'user' | 'admin'
   streakCount: integer("streak_count").default(0).notNull(),
   lastActiveAt: integer("last_active_at"),
   createdAt: integer("created_at").notNull(),
@@ -92,5 +93,15 @@ export const internshipLogs = sqliteTable("internship_logs", {
   description: text("description").notNull(),
   imageUrl: text("image_url").notNull(),
   content: text("content").notNull(),
+});
+
+export const downloads = sqliteTable("downloads", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  filename: text("filename").notNull(),
+  size: text("size").notNull(),
+  type: text("type").notNull(),
+  topic: text("topic").notNull(),
+  createdAt: integer("created_at").notNull(),
 });
 

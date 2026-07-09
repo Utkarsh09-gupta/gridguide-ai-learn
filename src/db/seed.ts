@@ -1,5 +1,5 @@
 import { db } from "./client";
-import { users, modules, equipment, userProgress, quizzes, questions, topics, internshipLogs } from "./schema";
+import { users, modules, equipment, userProgress, quizzes, questions, topics, internshipLogs, downloads } from "./schema";
 import { hashPassword } from "../lib/auth";
 
 async function main() {
@@ -14,10 +14,16 @@ async function main() {
     email: "aarav.kumar@upsldc.in",
     passwordHash: hashPassword("testing"),
     organization: "UPSLDC",
+    role: "admin",
     streakCount: 14,
     lastActiveAt: now,
     createdAt: now,
-  }).onConflictDoNothing();
+  }).onConflictDoUpdate({
+    target: users.id,
+    set: {
+      role: "admin",
+    }
+  });
 
   // 2. Seed Modules
   const modulesList = [
@@ -990,6 +996,77 @@ We inspected the primary reference clock rack in the telecommunications room:
         description: log.description,
         imageUrl: log.imageUrl,
         content: log.content,
+      }
+    });
+  }
+
+  // 5. Seed Downloads
+  const downloadsList = [
+    {
+      id: "scada-notes",
+      title: "SCADA — Master Notes",
+      filename: "scada_master_notes.md",
+      size: "4.5 KB",
+      type: "Markdown",
+      topic: "SCADA",
+      createdAt: now,
+    },
+    {
+      id: "iec104-cheatsheet",
+      title: "IEC 60870-5-104 Cheatsheet",
+      filename: "iec104_cheatsheet.md",
+      size: "3.8 KB",
+      type: "Markdown",
+      topic: "Comms",
+      createdAt: now,
+    },
+    {
+      id: "protection-overview",
+      title: "Protection Relays — Overview",
+      filename: "protection_relays_overview.md",
+      size: "3.2 KB",
+      type: "Markdown",
+      topic: "Protection",
+      createdAt: now,
+    },
+    {
+      id: "pmu-handbook",
+      title: "PMU & WAMS — Handbook",
+      filename: "pmu_wams_handbook.md",
+      size: "2.8 KB",
+      type: "Markdown",
+      topic: "PMU",
+      createdAt: now,
+    },
+    {
+      id: "ems-handbook",
+      title: "EMS Applications — SE / OPF / AGC",
+      filename: "ems_applications_handbook.md",
+      size: "3.5 KB",
+      type: "Markdown",
+      topic: "EMS",
+      createdAt: now,
+    },
+    {
+      id: "iec61850-handbook",
+      title: "Substation Automation IEC 61850",
+      filename: "substation_automation_iec61850.md",
+      size: "4.2 KB",
+      type: "Markdown",
+      topic: "Automation",
+      createdAt: now,
+    },
+  ];
+
+  for (const dl of downloadsList) {
+    await db.insert(downloads).values(dl).onConflictDoUpdate({
+      target: downloads.id,
+      set: {
+        title: dl.title,
+        filename: dl.filename,
+        size: dl.size,
+        type: dl.type,
+        topic: dl.topic,
       }
     });
   }
