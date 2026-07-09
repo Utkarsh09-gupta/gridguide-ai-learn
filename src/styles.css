@@ -95,6 +95,11 @@
       radial-gradient(45rem 45rem at 50% 120%, oklch(0.78 0.19 155 / 0.10), transparent 60%);
     background-attachment: fixed;
   }
+  @media (max-width: 768px) {
+    body {
+      background-attachment: scroll;
+    }
+  }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
@@ -114,6 +119,15 @@
   background: linear-gradient(180deg, oklch(1 0 0 / 0.09), oklch(1 0 0 / 0.03));
   border: 1px solid oklch(1 0 0 / 0.12);
   backdrop-filter: blur(24px) saturate(160%);
+}
+
+@media (max-width: 768px) {
+  .glass {
+    backdrop-filter: blur(4px) saturate(110%);
+  }
+  .glass-strong {
+    backdrop-filter: blur(6px) saturate(120%);
+  }
 }
 
 @utility text-gradient {
