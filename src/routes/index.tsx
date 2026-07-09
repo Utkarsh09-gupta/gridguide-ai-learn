@@ -88,7 +88,7 @@ function Hero() {
             </Button>
             <Button asChild size="lg" variant="outline" className="glass border-white/15">
               <Link to="/equipment">
-                <Play className="w-4 h-4 mr-1.5" /> Explore Modules
+                <Play className="w-4 h-4 mr-1.5" /> Explore Equipments
               </Link>
             </Button>
           </motion.div>
