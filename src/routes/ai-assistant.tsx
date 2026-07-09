@@ -81,7 +81,7 @@ function AIAssistant() {
         ]);
       } else {
         setAiErrorType("general");
-        toast.error("An error occurred while contacting the AI Assistant.");
+        toast.error(err.message || "An error occurred while contacting the AI Assistant.");
       }
     } finally {
       setAiLoading(false);

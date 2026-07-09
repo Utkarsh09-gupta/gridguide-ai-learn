@@ -254,7 +254,7 @@ function ModuleStudyPage() {
         ]);
       } else {
         setAiErrorType("general");
-        toast.error("AI Assistant error occurred.");
+        toast.error(err.message || "AI Assistant error occurred.");
       }
     } finally {
       setAiLoading(false);
