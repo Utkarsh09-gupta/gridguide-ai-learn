@@ -621,3 +621,162 @@ export const checkAdminClearanceFn = createServerFn()
       return { cleared: false };
     }
   });
+
+export const getModulesFn = createServerFn()
+  .handler(async () => {
+    if (!import.meta.env.SSR) return [];
+    const { db } = await import("../db/client");
+    const { modules } = await import("../db/schema");
+    try {
+      const list = await db.select().from(modules).orderBy(modules.index);
+      return list;
+    } catch (e) {
+      console.error("Error fetching modules:", e);
+      return [];
+    }
+  });
+
+export const updateModuleFn = createServerFn({ method: "POST" })
+  .validator((data: any) => data as { id: string; title: string; description: string; difficulty: string; time: string; accent: string })
+  .handler(async ({ data }) => {
+    if (!import.meta.env.SSR) throw new Error("Server execution only");
+    await verifyAdminClearanceOrThrow();
+    const { db } = await import("../db/client");
+    const { modules } = await import("../db/schema");
+    const { eq } = await import("drizzle-orm");
+
+    await db.update(modules).set({
+      title: data.title,
+      description: data.description,
+      difficulty: data.difficulty,
+      time: data.time,
+      accent: data.accent,
+    }).where(eq(modules.id, data.id));
+    return { success: true };
+  });
+
+export const addTopicFn = createServerFn({ method: "POST" })
+  .validator((data: any) => data as { moduleId: string; title: string; content: string; timeToRead: string; index: number })
+  .handler(async ({ data }) => {
+    if (!import.meta.env.SSR) throw new Error("Server execution only");
+    await verifyAdminClearanceOrThrow();
+    const { db } = await import("../db/client");
+    const { topics } = await import("../db/schema");
+    const crypto = await import("crypto");
+
+    const id = crypto.randomUUID();
+    await db.insert(topics).values({
+      id,
+      moduleId: data.moduleId,
+      title: data.title,
+      content: data.content,
+      timeToRead: data.timeToRead,
+      index: data.index,
+    });
+    return { success: true, id };
+  });
+
+export const updateTopicFn = createServerFn({ method: "POST" })
+  .validator((data: any) => data as { id: string; title: string; content: string; timeToRead: string; index: number })
+  .handler(async ({ data }) => {
+    if (!import.meta.env.SSR) throw new Error("Server execution only");
+    await verifyAdminClearanceOrThrow();
+    const { db } = await import("../db/client");
+    const { topics } = await import("../db/schema");
+    const { eq } = await import("drizzle-orm");
+
+    await db.update(topics).set({
+      title: data.title,
+      content: data.content,
+      timeToRead: data.timeToRead,
+      index: data.index,
+    }).where(eq(topics.id, data.id));
+    return { success: true };
+  });
+
+export const deleteTopicFn = createServerFn({ method: "POST" })
+  .validator((data: any) => data as { id: string })
+  .handler(async ({ data }) => {
+    if (!import.meta.env.SSR) throw new Error("Server execution only");
+    await verifyAdminClearanceOrThrow();
+    const { db } = await import("../db/client");
+    const { topics } = await import("../db/schema");
+    const { eq } = await import("drizzle-orm");
+
+    await db.delete(topics).where(eq(topics.id, data.id));
+    return { success: true };
+  });
+
+export const getQuizQuestionsFn = createServerFn()
+  .validator((data: any) => data as { moduleId: string })
+  .handler(async ({ data }) => {
+    if (!import.meta.env.SSR) return { quiz: null, questions: [] };
+    const { moduleId } = data;
+    const { db } = await import("../db/client");
+    const { quizzes, questions } = await import("../db/schema");
+    const { eq } = await import("drizzle-orm");
+
+    try {
+      const [quiz] = await db.select().from(quizzes).where(eq(quizzes.moduleId, moduleId));
+      if (!quiz) return { quiz: null, questions: [] };
+
+      const qList = await db.select().from(questions).where(eq(questions.quizId, quiz.id));
+      return { quiz, questions: qList };
+    } catch (e) {
+      console.error("Error fetching quiz questions:", e);
+      return { quiz: null, questions: [] };
+    }
+  });
+
+export const updateQuizQuestionsFn = createServerFn({ method: "POST" })
+  .validator((data: any) => data as {
+    moduleId: string;
+    quizTitle: string;
+    quizDescription: string;
+    questions: Array<{
+      id?: string;
+      questionText: string;
+      options: string;
+      correctAnswerIndex: number;
+    }>;
+  })
+  .handler(async ({ data }) => {
+    if (!import.meta.env.SSR) throw new Error("Server execution only");
+    await verifyAdminClearanceOrThrow();
+    const { db } = await import("../db/client");
+    const { quizzes, questions } = await import("../db/schema");
+    const { eq } = await import("drizzle-orm");
+    const crypto = await import("crypto");
+
+    let [quiz] = await db.select().from(quizzes).where(eq(quizzes.moduleId, data.moduleId));
+    let quizId = quiz?.id;
+    if (!quiz) {
+      quizId = crypto.randomUUID();
+      await db.insert(quizzes).values({
+        id: quizId,
+        moduleId: data.moduleId,
+        title: data.quizTitle,
+        description: data.quizDescription,
+      });
+    } else {
+      await db.update(quizzes).set({
+        title: data.quizTitle,
+        description: data.quizDescription,
+      }).where(eq(quizzes.id, quizId));
+    }
+
+    await db.delete(questions).where(eq(questions.quizId, quizId));
+
+    for (const q of data.questions) {
+      const qId = q.id || crypto.randomUUID();
+      await db.insert(questions).values({
+        id: qId,
+        quizId: quizId,
+        questionText: q.questionText,
+        options: q.options,
+        correctAnswerIndex: q.correctAnswerIndex,
+      });
+    }
+
+    return { success: true };
+  });

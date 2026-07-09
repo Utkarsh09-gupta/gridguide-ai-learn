@@ -7,13 +7,23 @@ import {
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { modules } from "@/data/modules";
+import { modules as staticModules } from "@/data/modules";
 import { equipment } from "@/data/equipment";
 import { stats, whyPoints, recentLearning } from "@/data/site";
 import { ModuleCard } from "@/components/ModuleCard";
 import { EquipmentCard } from "@/components/EquipmentCard";
+import { getModulesFn } from "@/lib/auth-functions";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    try {
+      const dbModules = await getModulesFn();
+      return { dbModules };
+    } catch (e) {
+      console.error("Failed to load modules for home:", e);
+      return { dbModules: [] };
+    }
+  },
   head: () => ({
     meta: [
       { title: "GridGuide AI — Smart Learning for Power System & SCADA Interns" },
@@ -26,12 +36,13 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const { dbModules } = Route.useLoaderData();
   return (
     <SiteLayout>
       <Hero />
       <Stats />
       <QuickActions />
-      <Roadmap />
+      <Roadmap modules={dbModules} />
       <Equipment />
       <Continue />
       <Why />
@@ -246,12 +257,13 @@ function QuickActions() {
   );
 }
 
-function Roadmap() {
+function Roadmap({ modules }: { modules: any[] }) {
+  const activeModules = modules && modules.length > 0 ? modules : staticModules;
   return (
     <section className="mx-auto max-w-7xl px-4 mt-20">
-      <SectionHead eyebrow="Learning roadmap" title="10 modules · from fundamentals to WAMS" />
+      <SectionHead eyebrow="Learning roadmap" title={`${activeModules.length} modules · from fundamentals to WAMS`} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-8">
-        {modules.map((m, i) => <ModuleCard key={m.id} m={m} i={i} />)}
+        {activeModules.map((m, i) => <ModuleCard key={m.id} m={m} i={i} />)}
       </div>
     </section>
   );

@@ -1,9 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/PageShell";
 import { ModuleCard } from "@/components/ModuleCard";
-import { modules } from "@/data/modules";
+import { modules as staticModules } from "@/data/modules";
+import { getModulesFn } from "@/lib/auth-functions";
 
 export const Route = createFileRoute("/learning-path/")({
+  loader: async () => {
+    try {
+      const dbModules = await getModulesFn();
+      return { dbModules };
+    } catch (e) {
+      console.error("Failed to load modules for learning path:", e);
+      return { dbModules: [] };
+    }
+  },
   head: () => ({
     meta: [
       { title: "Learning Path — GridGuide AI" },
@@ -14,6 +24,9 @@ export const Route = createFileRoute("/learning-path/")({
 });
 
 function LearningPath() {
+  const { dbModules } = Route.useLoaderData();
+  const activeModules = dbModules && dbModules.length > 0 ? dbModules : staticModules;
+
   return (
     <PageShell
       eyebrow="Curriculum"
@@ -21,7 +34,7 @@ function LearningPath() {
       description="A guided roadmap from power system fundamentals to advanced substation automation and wide-area monitoring."
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {modules.map((m, i) => <ModuleCard key={m.id} m={m} i={i} />)}
+        {activeModules.map((m, i) => <ModuleCard key={m.id} m={m} i={i} />)}
       </div>
     </PageShell>
   );

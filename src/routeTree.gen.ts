@@ -27,6 +27,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as LogbookIdRouteImport } from './routes/logbook.$id'
 import { Route as LearningPathModuleIdRouteImport } from './routes/learning-path.$moduleId'
 import { Route as EquipmentIdRouteImport } from './routes/equipment.$id'
+import { Route as AdminModulesRouteImport } from './routes/admin.modules'
 import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminEquipmentRouteImport } from './routes/admin.equipment'
 import { Route as AdminDownloadsRouteImport } from './routes/admin.downloads'
@@ -122,6 +123,11 @@ const EquipmentIdRoute = EquipmentIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => EquipmentRoute,
 } as any)
+const AdminModulesRoute = AdminModulesRouteImport.update({
+  id: '/modules',
+  path: '/modules',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLogsRoute = AdminLogsRouteImport.update({
   id: '/logs',
   path: '/logs',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/admin/downloads': typeof AdminDownloadsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/logs': typeof AdminLogsRoute
+  '/admin/modules': typeof AdminModulesRoute
   '/equipment/$id': typeof EquipmentIdRoute
   '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
   '/logbook/$id': typeof LogbookIdRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/admin/downloads': typeof AdminDownloadsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/logs': typeof AdminLogsRoute
+  '/admin/modules': typeof AdminModulesRoute
   '/equipment/$id': typeof EquipmentIdRoute
   '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
   '/logbook/$id': typeof LogbookIdRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/admin/downloads': typeof AdminDownloadsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/logs': typeof AdminLogsRoute
+  '/admin/modules': typeof AdminModulesRoute
   '/equipment/$id': typeof EquipmentIdRoute
   '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
   '/logbook/$id': typeof LogbookIdRoute
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/admin/downloads'
     | '/admin/equipment'
     | '/admin/logs'
+    | '/admin/modules'
     | '/equipment/$id'
     | '/learning-path/$moduleId'
     | '/logbook/$id'
@@ -249,6 +259,7 @@ export interface FileRouteTypes {
     | '/admin/downloads'
     | '/admin/equipment'
     | '/admin/logs'
+    | '/admin/modules'
     | '/equipment/$id'
     | '/learning-path/$moduleId'
     | '/logbook/$id'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/admin/downloads'
     | '/admin/equipment'
     | '/admin/logs'
+    | '/admin/modules'
     | '/equipment/$id'
     | '/learning-path/$moduleId'
     | '/logbook/$id'
@@ -426,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipmentIdRouteImport
       parentRoute: typeof EquipmentRoute
     }
+    '/admin/modules': {
+      id: '/admin/modules'
+      path: '/modules'
+      fullPath: '/admin/modules'
+      preLoaderRoute: typeof AdminModulesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/logs': {
       id: '/admin/logs'
       path: '/logs'
@@ -461,6 +480,7 @@ interface AdminRouteChildren {
   AdminDownloadsRoute: typeof AdminDownloadsRoute
   AdminEquipmentRoute: typeof AdminEquipmentRoute
   AdminLogsRoute: typeof AdminLogsRoute
+  AdminModulesRoute: typeof AdminModulesRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -468,6 +488,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDownloadsRoute: AdminDownloadsRoute,
   AdminEquipmentRoute: AdminEquipmentRoute,
   AdminLogsRoute: AdminLogsRoute,
+  AdminModulesRoute: AdminModulesRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
