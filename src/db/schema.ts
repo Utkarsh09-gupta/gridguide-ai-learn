@@ -1,0 +1,73 @@
+import { sqliteTable, text, integer, primaryKey } from "drizzle-orm/sqlite-core";
+
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  organization: text("organization").default("UPSLDC"),
+  streakCount: integer("streak_count").default(0).notNull(),
+  lastActiveAt: integer("last_active_at"),
+  createdAt: integer("created_at").notNull(),
+});
+
+export const modules = sqliteTable("modules", {
+  id: text("id").primaryKey(),
+  index: integer("index").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  difficulty: text("difficulty").notNull(), // 'Beginner' | 'Intermediate' | 'Advanced'
+  time: text("time").notNull(),
+  accent: text("accent").notNull(),
+});
+
+export const equipment = sqliteTable("equipment", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  full: text("full").notNull(),
+  tag: text("tag").notNull(),
+  description: text("description").notNull(),
+  detailedContent: text("detailed_content"),
+});
+
+export const userProgress = sqliteTable("user_progress", {
+  userId: text("user_id").notNull().references(() => users.id),
+  moduleId: text("module_id").notNull().references(() => modules.id),
+  progress: integer("progress").default(0).notNull(),
+  completedTopics: text("completed_topics").default("[]").notNull(), // JSON array string
+  updatedAt: integer("updated_at").notNull(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.moduleId] })
+}));
+
+export const quizzes = sqliteTable("quizzes", {
+  id: text("id").primaryKey(),
+  moduleId: text("module_id").notNull().references(() => modules.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+});
+
+export const questions = sqliteTable("questions", {
+  id: text("id").primaryKey(),
+  quizId: text("quiz_id").notNull().references(() => quizzes.id),
+  questionText: text("question_text").notNull(),
+  options: text("options").notNull(), // JSON array string
+  correctAnswerIndex: integer("correct_answer_index").notNull(),
+});
+
+export const userScores = sqliteTable("user_scores", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  quizId: text("quiz_id").notNull().references(() => quizzes.id),
+  score: integer("score").notNull(),
+  totalQuestions: integer("total_questions").notNull(),
+  completedAt: integer("completed_at").notNull(),
+});
+
+export const chatHistory = sqliteTable("chat_history", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  role: text("role").notNull(), // 'user' | 'model'
+  messageText: text("message_text").notNull(),
+  timestamp: integer("timestamp").notNull(),
+});
