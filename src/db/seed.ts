@@ -1,5 +1,5 @@
 import { db } from "./client";
-import { users, modules, equipment, userProgress, quizzes, questions, topics } from "./schema";
+import { users, modules, equipment, userProgress, quizzes, questions, topics, internshipLogs } from "./schema";
 import { hashPassword } from "../lib/auth";
 
 async function main() {
@@ -886,6 +886,112 @@ In the event of a total grid collapse:
 
   for (const t of topicsList) {
     await db.insert(topics).values(t).onConflictDoNothing();
+  }
+
+  // 9. Seed Internship Logs
+  const internshipLogsList = [
+    {
+      id: "day1-sldc-control-room",
+      title: "Observation of State Load Dispatch Control Room",
+      date: "Day 1 · July 6, 2026",
+      tag: "Control Room",
+      description: "First day observing the SCADA visual wall display at the main UPSLDC control room.",
+      imageUrl: "/images/logbook/WhatsApp Image 2026-07-07 at 2.21.50 PM (1).jpeg",
+      content: `### Main Control Room Observations
+
+Today was my first day in the main control room of the State Load Dispatch Center (SLDC). The room is dominated by a massive video wall showing real-time parameters:
+
+* **Grid Map (Single Line)**: A dynamic graphical representation of the state's transmission lines (400 kV, 220 kV, and key 765 kV lines).
+* **Generation Curves**: Live active power graphs updated every 2-4 seconds.
+* **Frequency Indicator**: A large digital clock showing the current system frequency (aiming for the 50.00 Hz target).
+
+#### Log Details
+The dispatch team monitors real-time telemetry inputs (breaker positions, line flows, transformer taps) and is in constant communication with regional power plants and PowerGrid (PGCIL) to manage active scheduling.`
+    },
+    {
+      id: "day2-up-generation-dashboard",
+      title: "Statewide Power Generation Telemetry Analysis",
+      date: "Day 2 · July 7, 2026",
+      tag: "Grid Telemetry",
+      description: "Analyzing UPRVUNL thermal, UPJVNL hydro, IPP, and solar generation sources.",
+      imageUrl: "/images/logbook/WhatsApp Image 2026-07-07 at 2.41.37 PM (1).jpeg",
+      content: `### Analyzing Generation HMI Panel
+
+We sat down with the dispatch engineers to analyze the "UP GENERATION" HMI screen, which details active generation sources across Uttar Pradesh:
+
+* **Hydro (UPJVNL)**: Obra-H, Rihand, Matatila, and IPP Hydro units.
+* **Thermal (UPRVUNL)**: Major state-owned plants like Anpara (A, B, D), Obra, Parichha, and Tanda.
+* **IPPs (Independent Power Producers)**: Lanco Anpara-C, Rosa, and Bara.
+* **Grid Metrics**:
+    * **Frequency**: 49.96 Hz (slightly below nominal, indicating load slightly exceeds generation).
+    * **State Demand**: 19,523 MW.
+    * **Inter-State Drawl**: 8,113 MW actual drawl vs. 8,012 MW schedule, yielding an over-drawl (OD) of 101 MW.`
+    },
+    {
+      id: "day3-substation-sld-meja",
+      title: "Single-Line Diagram (SLD) Study: Meja 400kV Substation",
+      date: "Day 3 · July 8, 2026",
+      tag: "Substation",
+      description: "Studying the 400kV bus coupler, lines, and generator transformers of Meja Substation.",
+      imageUrl: "/images/logbook/WhatsApp Image 2026-07-07 at 2.51.09 PM (1).jpeg",
+      content: `### Substation SLD Telemetry
+
+We studied the Single Line Diagram (SLD) of the Meja 400kV substation displayed on the SCADA HMI.
+
+#### System Overview:
+* **Double Bus configuration**: Dual 400kV main busbars providing high reliability.
+* **Incoming Feeders**: Lines to Bara and Allahabad-PG.
+* **Transformers**:
+    * **Generator Transformers (GT-1 & GT-2)** stepping up generator voltage from 23.5 kV to 400 kV.
+    * **Inter-connecting Transformers (ICT-1 & ICT-2)** rated at 400/132 kV and 200 MVA capacity.
+* **Shunt Reactor**: A 125 MVAR reactor connected to absorb excess reactive power under low-load conditions to keep voltages within limits.`
+    },
+    {
+      id: "day4-auxiliary-power-distribution",
+      title: "SLDC Substation Auxiliary Supply Schemes",
+      date: "Day 4 · July 9, 2026",
+      tag: "Power Supply",
+      description: "Reviewing the ACDB, redundant UPS networks, and battery bank distribution.",
+      imageUrl: "/images/logbook/WhatsApp Image 2026-07-09 at 8.01.26 AM.jpeg",
+      content: `### Auxiliary Power Schemes
+
+Reliable power is critical for SLDC control rooms. Today we studied the "Power Supply Distribution & Control Flowchart" for the SLDC center:
+
+* **Dual 11kV Feeder Inputs**: Feeds from local substation breakers (Mantri Awas and Viraj Khand).
+* **Step-Down Transformers**: Stepped down to 415 V for local distribution.
+* **Automatic Transfer Switch (ATS)**: Swaps between utility power and a 500 KVA backup Diesel Generator (DG) within seconds.
+* **Redundant UPS Units**: Dual 40KVA UPS units backed by massive 480V Battery Banks (Bank-1 & Bank-2) supplying clean AC power to servers, HMIs, and the control room wall.`
+    },
+    {
+      id: "day5-gnss-gps-time-sync",
+      title: "Sub-Microsecond GPS Time Synchronization Rack",
+      date: "Day 5 · July 10, 2026",
+      tag: "Time Sync",
+      description: "Inspecting the VCL-2145 Primary Reference Clock and fiber time distribution rack.",
+      imageUrl: "/images/logbook/WhatsApp Image 2026-07-09 at 8.01.40 AM.jpeg",
+      content: `### GNSS Time Sync Installation
+
+We inspected the primary reference clock rack in the telecommunications room:
+
+* **Primary Reference Clock**: The VCL-2145-LC reference clock aggregates time pulses from GPS/GLONASS satellites.
+* **Satellite Tracking**: Tracks 9 to 11 satellites in real-time, providing clock accuracy within 1 microsecond (essential for PMUs and fault locators).
+* **Sync Formats**: Distributes time coordinates using **IRIG-B(AM)** coax connections and **PTP (IEEE 1588v2)** over fiber.
+* **SCADA Switch**: A dedicated fiber Ethernet switch routes synchronized telemetry data across the local LAN.`
+    }
+  ];
+
+  for (const log of internshipLogsList) {
+    await db.insert(internshipLogs).values(log).onConflictDoUpdate({
+      target: internshipLogs.id,
+      set: {
+        title: log.title,
+        date: log.date,
+        tag: log.tag,
+        description: log.description,
+        imageUrl: log.imageUrl,
+        content: log.content,
+      }
+    });
   }
 
   console.log("Database seeded successfully!");

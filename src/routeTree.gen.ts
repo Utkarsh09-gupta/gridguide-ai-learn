@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as LogbookRouteImport } from './routes/logbook'
 import { Route as LearningPathRouteImport } from './routes/learning-path'
 import { Route as EquipmentRouteImport } from './routes/equipment'
 import { Route as DownloadsRouteImport } from './routes/downloads'
@@ -18,8 +19,10 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AiAssistantRouteImport } from './routes/ai-assistant'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LogbookIndexRouteImport } from './routes/logbook.index'
 import { Route as LearningPathIndexRouteImport } from './routes/learning-path.index'
 import { Route as EquipmentIndexRouteImport } from './routes/equipment.index'
+import { Route as LogbookIdRouteImport } from './routes/logbook.$id'
 import { Route as LearningPathModuleIdRouteImport } from './routes/learning-path.$moduleId'
 import { Route as EquipmentIdRouteImport } from './routes/equipment.$id'
 
@@ -31,6 +34,11 @@ const QuizRoute = QuizRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogbookRoute = LogbookRouteImport.update({
+  id: '/logbook',
+  path: '/logbook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LearningPathRoute = LearningPathRouteImport.update({
@@ -68,6 +76,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LogbookIndexRoute = LogbookIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LogbookRoute,
+} as any)
 const LearningPathIndexRoute = LearningPathIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -77,6 +90,11 @@ const EquipmentIndexRoute = EquipmentIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => EquipmentRoute,
+} as any)
+const LogbookIdRoute = LogbookIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => LogbookRoute,
 } as any)
 const LearningPathModuleIdRoute = LearningPathModuleIdRouteImport.update({
   id: '/$moduleId',
@@ -97,12 +115,15 @@ export interface FileRoutesByFullPath {
   '/downloads': typeof DownloadsRoute
   '/equipment': typeof EquipmentRouteWithChildren
   '/learning-path': typeof LearningPathRouteWithChildren
+  '/logbook': typeof LogbookRouteWithChildren
   '/profile': typeof ProfileRoute
   '/quiz': typeof QuizRoute
   '/equipment/$id': typeof EquipmentIdRoute
   '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
+  '/logbook/$id': typeof LogbookIdRoute
   '/equipment/': typeof EquipmentIndexRoute
   '/learning-path/': typeof LearningPathIndexRoute
+  '/logbook/': typeof LogbookIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -114,8 +135,10 @@ export interface FileRoutesByTo {
   '/quiz': typeof QuizRoute
   '/equipment/$id': typeof EquipmentIdRoute
   '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
+  '/logbook/$id': typeof LogbookIdRoute
   '/equipment': typeof EquipmentIndexRoute
   '/learning-path': typeof LearningPathIndexRoute
+  '/logbook': typeof LogbookIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -126,12 +149,15 @@ export interface FileRoutesById {
   '/downloads': typeof DownloadsRoute
   '/equipment': typeof EquipmentRouteWithChildren
   '/learning-path': typeof LearningPathRouteWithChildren
+  '/logbook': typeof LogbookRouteWithChildren
   '/profile': typeof ProfileRoute
   '/quiz': typeof QuizRoute
   '/equipment/$id': typeof EquipmentIdRoute
   '/learning-path/$moduleId': typeof LearningPathModuleIdRoute
+  '/logbook/$id': typeof LogbookIdRoute
   '/equipment/': typeof EquipmentIndexRoute
   '/learning-path/': typeof LearningPathIndexRoute
+  '/logbook/': typeof LogbookIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -143,12 +169,15 @@ export interface FileRouteTypes {
     | '/downloads'
     | '/equipment'
     | '/learning-path'
+    | '/logbook'
     | '/profile'
     | '/quiz'
     | '/equipment/$id'
     | '/learning-path/$moduleId'
+    | '/logbook/$id'
     | '/equipment/'
     | '/learning-path/'
+    | '/logbook/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -160,8 +189,10 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/equipment/$id'
     | '/learning-path/$moduleId'
+    | '/logbook/$id'
     | '/equipment'
     | '/learning-path'
+    | '/logbook'
   id:
     | '__root__'
     | '/'
@@ -171,12 +202,15 @@ export interface FileRouteTypes {
     | '/downloads'
     | '/equipment'
     | '/learning-path'
+    | '/logbook'
     | '/profile'
     | '/quiz'
     | '/equipment/$id'
     | '/learning-path/$moduleId'
+    | '/logbook/$id'
     | '/equipment/'
     | '/learning-path/'
+    | '/logbook/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -187,6 +221,7 @@ export interface RootRouteChildren {
   DownloadsRoute: typeof DownloadsRoute
   EquipmentRoute: typeof EquipmentRouteWithChildren
   LearningPathRoute: typeof LearningPathRouteWithChildren
+  LogbookRoute: typeof LogbookRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   QuizRoute: typeof QuizRoute
 }
@@ -205,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logbook': {
+      id: '/logbook'
+      path: '/logbook'
+      fullPath: '/logbook'
+      preLoaderRoute: typeof LogbookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/learning-path': {
@@ -256,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/logbook/': {
+      id: '/logbook/'
+      path: '/'
+      fullPath: '/logbook/'
+      preLoaderRoute: typeof LogbookIndexRouteImport
+      parentRoute: typeof LogbookRoute
+    }
     '/learning-path/': {
       id: '/learning-path/'
       path: '/'
@@ -269,6 +318,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/equipment/'
       preLoaderRoute: typeof EquipmentIndexRouteImport
       parentRoute: typeof EquipmentRoute
+    }
+    '/logbook/$id': {
+      id: '/logbook/$id'
+      path: '/$id'
+      fullPath: '/logbook/$id'
+      preLoaderRoute: typeof LogbookIdRouteImport
+      parentRoute: typeof LogbookRoute
     }
     '/learning-path/$moduleId': {
       id: '/learning-path/$moduleId'
@@ -315,6 +371,19 @@ const LearningPathRouteWithChildren = LearningPathRoute._addFileChildren(
   LearningPathRouteChildren,
 )
 
+interface LogbookRouteChildren {
+  LogbookIdRoute: typeof LogbookIdRoute
+  LogbookIndexRoute: typeof LogbookIndexRoute
+}
+
+const LogbookRouteChildren: LogbookRouteChildren = {
+  LogbookIdRoute: LogbookIdRoute,
+  LogbookIndexRoute: LogbookIndexRoute,
+}
+
+const LogbookRouteWithChildren =
+  LogbookRoute._addFileChildren(LogbookRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -323,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   DownloadsRoute: DownloadsRoute,
   EquipmentRoute: EquipmentRouteWithChildren,
   LearningPathRoute: LearningPathRouteWithChildren,
+  LogbookRoute: LogbookRouteWithChildren,
   ProfileRoute: ProfileRoute,
   QuizRoute: QuizRoute,
 }

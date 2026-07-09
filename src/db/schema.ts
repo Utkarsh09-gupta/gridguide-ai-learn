@@ -83,3 +83,14 @@ export const topics = sqliteTable("topics", {
   content: text("content").notNull(), // Detailed markdown content
   timeToRead: text("time_to_read").notNull(), // e.g. "15 mins"
 });
+
+export const internshipLogs = sqliteTable("internship_logs", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  date: text("date").notNull(),
+  tag: text("tag").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  content: text("content").notNull(),
+});
+

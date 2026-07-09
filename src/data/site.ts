@@ -1,9 +1,10 @@
-import { BookOpen, Bot, Cpu, Download, Home, ListChecks, User, Info } from "lucide-react";
+import { BookOpen, Bot, Cpu, Download, Home, ListChecks, User, Info, ClipboardList } from "lucide-react";
 
 export const nav = [
   { to: "/", label: "Home", icon: Home },
   { to: "/learning-path", label: "Learning Path", icon: BookOpen },
   { to: "/equipment", label: "Equipment Explorer", icon: Cpu },
+  { to: "/logbook", label: "Field Logbook", icon: ClipboardList },
   { to: "/ai-assistant", label: "AI Assistant", icon: Bot },
   { to: "/quiz", label: "Quiz", icon: ListChecks },
   { to: "/downloads", label: "Downloads", icon: Download },

@@ -324,3 +324,33 @@ export const getEquipmentByIdFn = createServerFn()
       return null;
     }
   });
+
+export const getInternshipLogsFn = createServerFn()
+  .handler(async () => {
+    const { db } = await import("../db/client");
+    const { internshipLogs } = await import("../db/schema");
+    try {
+      const list = await db.select().from(internshipLogs);
+      return list;
+    } catch (e) {
+      console.error("Error in getInternshipLogsFn:", e);
+      return [];
+    }
+  });
+
+export const getInternshipLogByIdFn = createServerFn()
+  .validator((data: any) => data as { id: string })
+  .handler(async ({ data }) => {
+    const { id } = data;
+    const { db } = await import("../db/client");
+    const { internshipLogs } = await import("../db/schema");
+    const { eq } = await import("drizzle-orm");
+    try {
+      const [item] = await db.select().from(internshipLogs).where(eq(internshipLogs.id, id));
+      return item || null;
+    } catch (e) {
+      console.error("Error in getInternshipLogByIdFn:", e);
+      return null;
+    }
+  });
+
