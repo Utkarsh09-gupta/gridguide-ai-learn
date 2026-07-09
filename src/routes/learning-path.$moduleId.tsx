@@ -36,14 +36,14 @@ export const sendGroundedAIMessageFn = createServerFn()
     const userId = decryptSession(session);
     if (!userId) throw new Error("Authentication required");
 
-    // 2. Read GEMINI_API_KEY from environment or .env
-    let apiKey = process.env.GEMINI_API_KEY;
+    // 2. Read GROQ_API_KEY from environment or .env
+    let apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
       try {
         const envPath = path.join(process.cwd(), ".env");
         if (fs.existsSync(envPath)) {
           const envContent = fs.readFileSync(envPath, "utf-8");
-          const match = envContent.match(/GEMINI_API_KEY\s*=\s*(.+)/);
+          const match = envContent.match(/GROQ_API_KEY\s*=\s*(.+)/);
           if (match) {
             apiKey = match[1].trim().replace(/^['"]|['"]$/g, "");
           }
@@ -54,10 +54,10 @@ export const sendGroundedAIMessageFn = createServerFn()
     }
 
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY_MISSING");
+      throw new Error("GROQ_API_KEY_MISSING");
     }
 
-    // 3. Build system prompt & request body for Gemini API
+    // 3. Build system prompt & request body for Groq API
     const systemPrompt = `You are "GridGuide AI", an expert SCADA, EMS, Wide-Area Monitoring (WAMS), and electrical substation automation tutor.
 You are teaching a professional operator or engineer.
 Keep your answers highly accurate, structured, and use standard power utility terminology.
@@ -73,28 +73,27 @@ ${lessonContent}
 Answer the user's question, using the study material above as your primary reference. If they ask questions beyond the lesson, you can answer them but relate them back to SCADA and grid operations where appropriate. Use clear markdown headers and bullet points in your response.`;
 
     const requestBody = {
-      contents: [
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
         {
           role: "user",
-          parts: [{ text: message }]
+          content: message
         }
       ],
-      systemInstruction: {
-        parts: [{ text: systemPrompt }]
-      },
-      generationConfig: {
-        temperature: 0.2,
-        topP: 0.95,
-        maxOutputTokens: 1024
-      }
+      temperature: 0.2
     };
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        "https://api.groq.com/openai/v1/chat/completions",
         {
           method: "POST",
           headers: {
+            "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify(requestBody)
@@ -103,18 +102,18 @@ Answer the user's question, using the study material above as your primary refer
 
       if (!response.ok) {
         const errText = await response.text();
-        throw new Error(`Gemini API error: ${response.status} - ${errText}`);
+        throw new Error(`Groq API error: ${response.status} - ${errText}`);
       }
 
       const resData = await response.json();
-      const aiText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+      const aiText = resData.choices?.[0]?.message?.content;
       if (!aiText) {
-        throw new Error("Empty response from Gemini API.");
+        throw new Error("Empty response from Groq API.");
       }
 
       return { text: aiText };
     } catch (err: any) {
-      console.error("Gemini API Request Failed:", err);
+      console.error("Groq API Request Failed:", err);
       throw new Error(err.message || "Failed to communicate with AI Tutor.");
     }
   });
@@ -244,13 +243,13 @@ function ModuleStudyPage() {
       setChatMessages((prev) => [...prev, { role: "ai", text: res.text }]);
     } catch (err: any) {
       console.error(err);
-      if (err.message?.includes("GEMINI_API_KEY_MISSING")) {
+      if (err.message?.includes("GROQ_API_KEY_MISSING")) {
         setAiErrorType("missing_key");
         setChatMessages((prev) => [
           ...prev, 
           { 
             role: "system", 
-            text: "ERROR: Gemini API Key is missing. Follow the steps below to configure it." 
+            text: "ERROR: Groq API Key is missing. Follow the steps below to configure it." 
           }
         ]);
       } else {
@@ -586,14 +585,14 @@ function ModuleStudyPage() {
                   <div className="glass border border-warning/30 bg-warning/5 rounded-xl p-3.5 space-y-2 mt-2">
                     <div className="flex items-center gap-2 text-warning text-xs font-semibold">
                       <AlertCircle className="w-4 h-4" />
-                      Gemini API Key Required
+                      Groq API Key Required
                     </div>
                     <p className="text-[10px] text-muted-foreground leading-normal">
-                      To activate the live AI tutor, you need to add your Google Gemini API Key:
+                      To activate the live AI tutor, you need to add your Groq API Key:
                     </p>
                     <ol className="text-[9px] text-muted-foreground list-decimal pl-4 space-y-1">
                       <li>Create a file named <code className="bg-white/5 px-1 py-0.5 rounded font-mono text-cyan">.env</code> in the root of the project.</li>
-                      <li>Add the line: <code className="bg-white/5 px-1 py-0.5 rounded font-mono text-cyan">GEMINI_API_KEY=your_actual_key</code></li>
+                      <li>Add the line: <code className="bg-white/5 px-1 py-0.5 rounded font-mono text-cyan">GROQ_API_KEY=your_actual_key</code></li>
                       <li>Restart the development server.</li>
                     </ol>
                   </div>

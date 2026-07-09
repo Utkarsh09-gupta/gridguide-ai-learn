@@ -780,3 +780,93 @@ export const updateQuizQuestionsFn = createServerFn({ method: "POST" })
 
     return { success: true };
   });
+
+export const sendGeneralAIMessageFn = createServerFn()
+  .validator((data: any) => data as { 
+    messages: { role: "user" | "ai"; text: string }[] 
+  })
+  .handler(async ({ data }) => {
+    const { messages } = data;
+    const { getEvent, getCookie } = await import("vinxi/http");
+    const { decryptSession } = await import("./auth");
+    const fs = await import("fs");
+    const path = await import("path");
+
+    // 1. Auth check
+    const event = getEvent();
+    const session = getCookie(event, "session");
+    if (!session) throw new Error("Authentication required");
+    const userId = decryptSession(session);
+    if (!userId) throw new Error("Authentication required");
+
+    // 2. Read GROQ_API_KEY from environment or .env
+    let apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      try {
+        const envPath = path.join(process.cwd(), ".env");
+        if (fs.existsSync(envPath)) {
+          const envContent = fs.readFileSync(envPath, "utf-8");
+          const match = envContent.match(/GROQ_API_KEY\s*=\s*(.+)/);
+          if (match) {
+            apiKey = match[1].trim().replace(/^['"]|['"]$/g, "");
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    if (!apiKey) {
+      throw new Error("GROQ_API_KEY_MISSING");
+    }
+
+    // 3. Build system prompt & request body for Groq API
+    const systemPrompt = `You are "GridGuide AI", an expert SCADA, EMS, Wide-Area Monitoring (WAMS), and electrical substation automation tutor.
+You are teaching a professional operator or engineer.
+Keep your answers highly accurate, structured, and use standard power utility terminology.
+Answer the user's question directly. Use clear markdown headers, bold text, and bullet points in your response.`;
+
+    const groqMessages = [
+      { role: "system", content: systemPrompt },
+      ...messages.map((m) => ({
+        role: m.role === "ai" ? "assistant" : "user",
+        content: m.text
+      }))
+    ];
+
+    const requestBody = {
+      model: "llama-3.3-70b-versatile",
+      messages: groqMessages,
+      temperature: 0.3
+    };
+
+    try {
+      const response = await fetch(
+        "https://api.groq.com/openai/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestBody)
+        }
+      );
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Groq API error: ${response.status} - ${errText}`);
+      }
+
+      const resData = await response.json();
+      const aiText = resData.choices?.[0]?.message?.content;
+      if (!aiText) {
+        throw new Error("Empty response from Groq API.");
+      }
+
+      return { text: aiText };
+    } catch (err: any) {
+      console.error("Groq API Request Failed:", err);
+      throw new Error(err.message || "Failed to communicate with AI Assistant.");
+    }
+  });
