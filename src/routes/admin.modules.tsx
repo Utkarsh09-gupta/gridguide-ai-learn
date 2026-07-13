@@ -276,6 +276,7 @@ function AdminModulesManager() {
       eyebrow="Grid Curriculum Terminal" 
       title="Curriculum Manager" 
       description="Edit modules, write lesson content (markdown), and set up quiz questionnaires."
+      backUrl="/admin"
     >
       <div className="max-w-6xl mx-auto mt-6">
         

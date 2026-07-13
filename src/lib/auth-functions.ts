@@ -104,7 +104,7 @@ export const getUserProfileStatsFn = createServerFn()
     const { getSessionCookie } = await import("./auth-cookies.server");
     const { decryptSession } = await import("./auth");
     const { db } = await import("../db/client");
-    const { users, modules, userProgress, userScores } = await import("../db/schema");
+    const { users, modules, userProgress, userScores, topics } = await import("../db/schema");
     const { eq, sql } = await import("drizzle-orm");
 
     const session = await getSessionCookie();
@@ -117,14 +117,40 @@ export const getUserProfileStatsFn = createServerFn()
     if (!user) return null;
 
     // Get progress rows with module titles
-    const progressRows = await db
+    const userProgRows = await db
       .select({
+        moduleId: userProgress.moduleId,
+        completedTopics: userProgress.completedTopics,
         title: modules.title,
-        progress: userProgress.progress,
       })
       .from(userProgress)
       .innerJoin(modules, eq(userProgress.moduleId, modules.id))
       .where(eq(userProgress.userId, userId));
+
+    // Fetch all topics to calculate precise, clean progress
+    const allTopics = await db
+      .select({ id: topics.id, moduleId: topics.moduleId })
+      .from(topics);
+
+    const progressRows = userProgRows.map((prog) => {
+      const modTopics = allTopics.filter((t) => t.moduleId === prog.moduleId);
+      let progressPercent = 0;
+      if (modTopics.length > 0) {
+        let completedList: string[] = [];
+        try {
+          completedList = JSON.parse(prog.completedTopics);
+        } catch (e) {
+          completedList = [];
+        }
+        const validTopicIds = modTopics.map((t) => t.id);
+        const validCompleted = completedList.filter((id) => validTopicIds.includes(id));
+        progressPercent = Math.round((validCompleted.length / modTopics.length) * 100);
+      }
+      return {
+        title: prog.title,
+        progress: progressPercent,
+      };
+    });
 
     const completedModulesCount = progressRows.filter((r) => r.progress === 100).length;
 
@@ -192,8 +218,18 @@ export const getModuleTopicsFn = createServerFn()
             .where(and(eq(userProgress.userId, userId), eq(userProgress.moduleId, moduleId)));
           
           if (prog) {
-            completedList = JSON.parse(prog.completedTopics);
-            progressPercent = prog.progress;
+            try {
+              completedList = JSON.parse(prog.completedTopics);
+            } catch (e) {
+              completedList = [];
+            }
+            // Filter completed topics to only include valid existing ones
+            const validTopicIds = moduleTopics.map((t) => t.id);
+            completedList = completedList.filter((id) => validTopicIds.includes(id));
+            
+            progressPercent = moduleTopics.length > 0
+              ? Math.round((completedList.length / moduleTopics.length) * 100)
+              : 0;
           }
         }
       }
@@ -249,17 +285,21 @@ export const completeTopicFn = createServerFn()
       }
     }
 
+    // Filter completed topics to only include valid existing ones
+    const validTopicIds = allTopics.map((t) => t.id);
+    let cleanedCompletedList = completedList.filter((id) => validTopicIds.includes(id));
+
     // Update completed topics list
     if (completed) {
-      if (!completedList.includes(topicId)) {
-        completedList.push(topicId);
+      if (!cleanedCompletedList.includes(topicId)) {
+        cleanedCompletedList.push(topicId);
       }
     } else {
-      completedList = completedList.filter((id) => id !== topicId);
+      cleanedCompletedList = cleanedCompletedList.filter((id) => id !== topicId);
     }
 
     // Compute progress percent
-    const progressPercent = Math.round((completedList.length / allTopics.length) * 100);
+    const progressPercent = Math.round((cleanedCompletedList.length / allTopics.length) * 100);
 
     // Upsert user progress row
     if (prog) {
@@ -267,7 +307,7 @@ export const completeTopicFn = createServerFn()
         .update(userProgress)
         .set({
           progress: progressPercent,
-          completedTopics: JSON.stringify(completedList),
+          completedTopics: JSON.stringify(cleanedCompletedList),
           updatedAt: Date.now(),
         })
         .where(and(eq(userProgress.userId, userId), eq(userProgress.moduleId, moduleId)));
@@ -278,14 +318,14 @@ export const completeTopicFn = createServerFn()
           userId,
           moduleId,
           progress: progressPercent,
-          completedTopics: JSON.stringify(completedList),
+          completedTopics: JSON.stringify(cleanedCompletedList),
           updatedAt: Date.now(),
         });
     }
 
     return {
       success: true,
-      completedTopics: completedList,
+      completedTopics: cleanedCompletedList,
       progress: progressPercent,
     };
   });
@@ -626,10 +666,64 @@ export const getModulesFn = createServerFn()
   .handler(async () => {
     if (!import.meta.env.SSR) return [];
     const { db } = await import("../db/client");
-    const { modules } = await import("../db/schema");
+    const { modules, userProgress, topics } = await import("../db/schema");
+    const { eq } = await import("drizzle-orm");
     try {
       const list = await db.select().from(modules).orderBy(modules.index);
-      return list;
+      
+      // Try to resolve logged-in user session
+      let userId: string | null = null;
+      try {
+        const { getSessionCookie } = await import("./auth-cookies.server");
+        const { decryptSession } = await import("./auth");
+        const session = await getSessionCookie();
+        if (session) {
+          userId = decryptSession(session);
+        }
+      } catch (e) {
+        // No session or not logged in
+      }
+
+      if (userId) {
+        // Fetch all progress rows for this user
+        const userProgList = await db
+          .select()
+          .from(userProgress)
+          .where(eq(userProgress.userId, userId));
+
+        // Fetch all topics to count total and calculate clean progress dynamically
+        const allTopics = await db
+          .select({ id: topics.id, moduleId: topics.moduleId })
+          .from(topics);
+
+        const modulesWithProgress = list.map((mod) => {
+          const prog = userProgList.find((p) => p.moduleId === mod.id);
+          const modTopics = allTopics.filter((t) => t.moduleId === mod.id);
+
+          let progressPercent = 0;
+          if (prog && modTopics.length > 0) {
+            let completedList: string[] = [];
+            try {
+              completedList = JSON.parse(prog.completedTopics);
+            } catch (e) {
+              completedList = [];
+            }
+            const validTopicIds = modTopics.map((t) => t.id);
+            const validCompleted = completedList.filter((id) => validTopicIds.includes(id));
+            progressPercent = Math.round((validCompleted.length / modTopics.length) * 100);
+          }
+
+          return {
+            ...mod,
+            progress: progressPercent,
+          };
+        });
+
+        return modulesWithProgress;
+      }
+
+      // Default if user is not logged in: 0% progress
+      return list.map((mod) => ({ ...mod, progress: 0 }));
     } catch (e) {
       console.error("Error fetching modules:", e);
       return [];

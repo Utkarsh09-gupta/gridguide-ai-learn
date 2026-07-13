@@ -111,7 +111,7 @@ function AdminDownloadsManager() {
   };
 
   return (
-    <PageShell eyebrow="Admin Console" title="Downloads Manager" description="Upload study materials, specifications, and cheatsheets for interns.">
+    <PageShell eyebrow="Admin Console" title="Downloads Manager" description="Upload study materials, specifications, and cheatsheets for interns." backUrl="/admin">
       <div className="max-w-6xl mx-auto mt-4 grid gap-8 lg:grid-cols-3">
         {/* Resource Form Panel */}
         <div className="glass rounded-3xl p-6 border border-white/10 lg:col-span-1 h-fit">

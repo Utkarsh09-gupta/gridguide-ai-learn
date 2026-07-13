@@ -153,7 +153,7 @@ function AdminEquipmentManager() {
   };
 
   return (
-    <PageShell eyebrow="Admin Console" title="Equipment Specifications Manager" description="Edit or create substation and control room hardware profiles.">
+    <PageShell eyebrow="Admin Console" title="Equipment Specifications Manager" description="Edit or create substation and control room hardware profiles." backUrl="/admin">
       <div className="max-w-7xl mx-auto mt-4 grid gap-8 lg:grid-cols-3">
         {/* Editor Form Panel */}
         <div className="glass rounded-3xl p-6 border border-white/10 lg:col-span-1 h-fit">

@@ -107,7 +107,7 @@ function AdminLogsManager() {
   };
 
   return (
-    <PageShell eyebrow="Admin Console" title="Field Logbook Manager" description="Author and manage chronology logs of substation and control room visits.">
+    <PageShell eyebrow="Admin Console" title="Field Logbook Manager" description="Author and manage chronology logs of substation and control room visits." backUrl="/admin">
       <div className="max-w-6xl mx-auto mt-4 grid gap-8 lg:grid-cols-3">
         {/* Logs Form Panel */}
         <div className="glass rounded-3xl p-6 border border-white/10 lg:col-span-1 h-fit">
