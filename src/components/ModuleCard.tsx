@@ -39,10 +39,10 @@ export function ModuleCard({ m, i = 0 }: { m: any; i?: number }) {
       <motion.article
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-40px" }}
-        transition={{ duration: 0.4, delay: i * 0.04 }}
+        viewport={{ once: true, margin: "0px" }}
+        transition={{ duration: 0.3, delay: Math.min(i * 0.03, 0.2) }}
         whileHover={{ y: -4 }}
-        className="glass group relative rounded-2xl p-5 overflow-hidden cursor-pointer"
+        className="glass gpu-layer group relative rounded-2xl p-5 overflow-hidden cursor-pointer"
       >
         <div className={cn("absolute -inset-px rounded-2xl bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity", m.accent)} />
         <div className="relative flex items-start justify-between">

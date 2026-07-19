@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { 
   ArrowLeft, CheckCircle2, Circle, Clock, BookOpen, 
-  ChevronLeft, ChevronRight, Send, Sparkles, Lock, Bot, AlertCircle 
+  ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Send, Sparkles, Lock, Bot, AlertCircle 
 } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
@@ -156,7 +156,13 @@ function ModuleStudyPage() {
   const [completedTopics, setCompletedTopics] = useState<string[]>(initialCompleted);
   const [progress, setProgress] = useState(initialProgress);
   const [activeTopicIndex, setActiveTopicIndex] = useState(0);
-  const [aiPanelOpen, setAiPanelOpen] = useState(true);
+  const [aiPanelOpen, setAiPanelOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth >= 1024;
+    }
+    return false;
+  });
+  const [showMobileList, setShowMobileList] = useState(false);
 
   // AI Chat State
   const [chatMessages, setChatMessages] = useState<AIChatMessage[]>([
@@ -275,7 +281,7 @@ function ModuleStudyPage() {
           const codeText = codeContent.join("\n");
           codeContent = [];
           return (
-            <pre key={idx} className="bg-navy-deep/80 border border-white/10 rounded-xl p-4 my-4 overflow-x-auto font-mono text-xs text-cyan">
+            <pre key={idx} className="bg-navy-deep/80 border border-white/10 rounded-xl p-4 my-4 overflow-x-auto max-w-full font-mono text-xs text-cyan">
               <code>{codeText}</code>
             </pre>
           );
@@ -290,17 +296,53 @@ function ModuleStudyPage() {
         return null;
       }
 
+      // Math equations ($$ ... $$)
+      if (line.trim().startsWith("$$") && line.trim().endsWith("$$")) {
+        const eqText = line.trim().slice(2, -2).trim();
+        return (
+          <div key={idx} className="my-3 p-3 rounded-xl bg-navy-deep/90 border border-cyan/30 text-cyan font-mono text-center text-xs sm:text-sm overflow-x-auto max-w-full shadow-inner">
+            {eqText}
+          </div>
+        );
+      }
+
+      // Blockquotes
+      if (line.trim().startsWith("> ")) {
+        return (
+          <blockquote key={idx} className="border-l-2 border-cyan/60 pl-3 py-1.5 my-3 text-xs sm:text-sm text-cyan/90 bg-cyan/5 rounded-r-lg break-words">
+            {parseInlineMarkup(line.trim().replace(/^>\s*/, ""))}
+          </blockquote>
+        );
+      }
+
+      // Table rows
+      if (line.trim().startsWith("|")) {
+        if (line.includes("---")) return null;
+        const cells = line.split("|").filter((_, i, arr) => i > 0 && i < arr.length - 1).map((c) => c.trim());
+        return (
+          <div key={idx} className="overflow-x-auto max-w-full my-2 rounded-lg bg-white/5 p-2 border border-white/10">
+            <div className="flex items-center gap-3 min-w-max text-xs">
+              {cells.map((cell, cIdx) => (
+                <div key={cIdx} className="px-2 py-1 text-muted-foreground font-mono">
+                  {parseInlineMarkup(cell)}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       // Headings
       if (line.startsWith("### ")) {
         return (
-          <h3 key={idx} className="text-xl font-semibold mt-7 mb-3 text-cyan border-b border-white/5 pb-2">
+          <h3 key={idx} className="text-lg sm:text-xl font-semibold mt-6 mb-3 text-cyan border-b border-white/5 pb-2 break-words">
             {line.replace("### ", "")}
           </h3>
         );
       }
       if (line.startsWith("#### ")) {
         return (
-          <h4 key={idx} className="text-lg font-semibold mt-5 mb-2 text-white">
+          <h4 key={idx} className="text-base sm:text-lg font-semibold mt-4 mb-2 text-white break-words">
             {line.replace("#### ", "")}
           </h4>
         );
@@ -309,14 +351,14 @@ function ModuleStudyPage() {
       // Bullet items
       if (line.trim().startsWith("* ")) {
         return (
-          <li key={idx} className="ml-6 list-disc text-sm text-muted-foreground my-1.5">
+          <li key={idx} className="ml-4 sm:ml-6 list-disc text-xs sm:text-sm text-muted-foreground my-1.5 break-words">
             {parseInlineMarkup(line.trim().replace("* ", ""))}
           </li>
         );
       }
       if (line.trim().startsWith("1. ") || line.trim().startsWith("2. ") || line.trim().startsWith("3. ")) {
         return (
-          <li key={idx} className="ml-6 list-decimal text-sm text-muted-foreground my-1.5">
+          <li key={idx} className="ml-4 sm:ml-6 list-decimal text-xs sm:text-sm text-muted-foreground my-1.5 break-words">
             {parseInlineMarkup(line.trim().replace(/^\d+\.\s+/, ""))}
           </li>
         );
@@ -329,27 +371,30 @@ function ModuleStudyPage() {
 
       // Paragraph
       if (line.trim() === "") {
-        return <div key={idx} className="h-3" />;
+        return <div key={idx} className="h-2.5" />;
       }
 
       return (
-        <p key={idx} className="text-sm text-muted-foreground leading-relaxed my-2.5">
+        <p key={idx} className="text-xs sm:text-sm text-muted-foreground leading-relaxed my-2.5 break-words [overflow-wrap:anywhere]">
           {parseInlineMarkup(line)}
         </p>
       );
     });
   };
 
-  // Parse bold and inline code styling
+  // Parse bold, inline code, and inline math styling
   const parseInlineMarkup = (text: string) => {
     // Basic regex replacements for presentation
-    const parts = text.split(/(\*\*.*?\*\*|`.*?`)/g);
+    const parts = text.split(/(\*\*.*?\*\*|`.*?`|\$.*?\$)/g);
     return parts.map((part, i) => {
       if (part.startsWith("**") && part.endsWith("**")) {
         return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
       }
       if (part.startsWith("`") && part.endsWith("`")) {
-        return <code key={i} className="bg-white/5 border border-white/10 px-1 py-0.5 rounded font-mono text-xs text-cyan">{part.slice(1, -1)}</code>;
+        return <code key={i} className="bg-white/5 border border-white/10 px-1 py-0.5 rounded font-mono text-[11px] sm:text-xs text-cyan break-all">{part.slice(1, -1)}</code>;
+      }
+      if (part.startsWith("$") && part.endsWith("$") && part.length > 2) {
+        return <span key={i} className="font-mono text-cyan bg-cyan/10 px-1 py-0.5 rounded text-[11px] sm:text-xs border border-cyan/20">{part.slice(1, -1)}</span>;
       }
       return part;
     });
@@ -367,11 +412,70 @@ function ModuleStudyPage() {
         </Link>
       </Button>
 
+      {/* Mobile Lessons Dropdown Selector */}
+      <div className="lg:hidden mb-4">
+        <button
+          onClick={() => setShowMobileList((prev) => !prev)}
+          className="w-full glass rounded-2xl p-3.5 flex items-center justify-between border border-white/10 text-xs font-medium"
+        >
+          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+            <BookOpen className="w-4 h-4 text-cyan shrink-0" />
+            <span className="truncate">
+              Lesson {activeTopic ? activeTopic.index : 1} of {topics.length}: {activeTopic?.title}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-[10px] text-cyan font-semibold">{progress}%</span>
+            {showMobileList ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+          </div>
+        </button>
+
+        {showMobileList && (
+          <div className="mt-2 glass rounded-2xl p-3 border border-white/10 space-y-1 max-h-[50vh] overflow-y-auto">
+            <div className="px-2 pb-2 border-b border-white/10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Lessons Checklist ({topics.length})
+            </div>
+            {topics.map((t, idx) => {
+              const isActive = idx === activeTopicIndex;
+              const isCompleted = completedTopics.includes(t.id);
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    setActiveTopicIndex(idx);
+                    setShowMobileList(false);
+                  }}
+                  className={`w-full text-left flex items-start gap-2.5 p-2.5 rounded-xl transition text-xs border ${
+                    isActive 
+                      ? "bg-white/5 border-cyan/30 text-white" 
+                      : "border-transparent text-muted-foreground hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  <span className="mt-0.5 shrink-0">
+                    {isCompleted ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-cyan" />
+                    ) : (
+                      <Circle className="w-3.5 h-3.5 text-white/20" />
+                    )}
+                  </span>
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="font-medium truncate">{t.title}</div>
+                    <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {t.timeToRead}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Main Grid Layout: Sidebar, Lesson Reader, AI Tutor Panel */}
       <div className="grid gap-6 lg:grid-cols-12 items-start">
         
-        {/* LEFT COLUMN: Sidebar Lesson list (3 cols) */}
-        <div className="lg:col-span-3 space-y-4">
+        {/* LEFT COLUMN: Desktop Sidebar Lesson list (3 cols, hidden on mobile) */}
+        <div className="hidden lg:block lg:col-span-3 space-y-4">
           <div className="glass rounded-2xl p-5 border border-white/10 relative overflow-hidden">
             <h4 className="font-semibold text-sm mb-2 text-white">Course Progress</h4>
             <div className="flex items-center justify-between text-xs mb-1.5 text-muted-foreground">
@@ -425,17 +529,17 @@ function ModuleStudyPage() {
         </div>
 
         {/* MIDDLE COLUMN: Lesson Content Reader (9 cols, or 6 cols if AI open) */}
-        <div className={`transition-all duration-300 ${aiPanelOpen ? "lg:col-span-6" : "lg:col-span-9"}`}>
+        <div className={`transition-all duration-300 min-w-0 w-full ${aiPanelOpen ? "lg:col-span-6" : "lg:col-span-9"}`}>
           {activeTopic ? (
-            <div className="glass-strong rounded-3xl p-6 md:p-8 border border-white/10">
+            <div className="glass-strong rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-white/10 overflow-hidden">
               
               {/* Header Toolbar */}
-              <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6 flex-wrap gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/10 mb-6 gap-3">
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase tracking-wider text-cyan font-mono bg-cyan/10 px-2 py-0.5 rounded">
-                    Lesson {activeTopic.index}
+                    Lesson {activeTopic.index} of {topics.length}
                   </span>
-                  <h2 className="text-2xl font-bold text-white mt-1">{activeTopic.title}</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mt-1 break-words">{activeTopic.title}</h2>
                 </div>
 
                 {/* Progress Toggle */}
@@ -443,7 +547,7 @@ function ModuleStudyPage() {
                   onClick={() => handleToggleComplete(activeTopic.id)}
                   variant={completedTopics.includes(activeTopic.id) ? "default" : "outline"}
                   size="sm"
-                  className={`glass ${
+                  className={`glass shrink-0 self-start sm:self-auto ${
                     completedTopics.includes(activeTopic.id) 
                       ? "bg-cyan text-primary-foreground border-transparent hover:bg-cyan/90" 
                       : "border-white/15 text-cyan hover:bg-white/5"
@@ -462,18 +566,18 @@ function ModuleStudyPage() {
               </div>
 
               {/* Study Material Content */}
-              <article className="prose prose-invert max-w-none text-muted-foreground min-h-[40vh]">
+              <article className="prose prose-invert max-w-none text-muted-foreground min-h-[40vh] break-words overflow-x-auto">
                 {renderMarkdown(activeTopic.content)}
               </article>
 
               {/* Navigation Footer */}
-              <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between gap-4">
+              <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-2.5">
                 <Button
                   disabled={activeTopicIndex === 0}
                   onClick={() => setActiveTopicIndex(activeTopicIndex - 1)}
                   variant="outline"
                   size="sm"
-                  className="glass border-white/15 text-xs"
+                  className="glass border-white/15 text-xs flex-1 sm:flex-none justify-center"
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" /> Previous
                 </Button>
@@ -483,10 +587,10 @@ function ModuleStudyPage() {
                   onClick={() => setAiPanelOpen(!aiPanelOpen)}
                   variant="outline"
                   size="sm"
-                  className={`glass border-white/15 text-xs ${aiPanelOpen ? "text-cyan border-cyan/30" : ""}`}
+                  className={`glass border-white/15 text-xs flex-1 sm:flex-none justify-center ${aiPanelOpen ? "text-cyan border-cyan/30" : ""}`}
                 >
                   <Sparkles className="w-3.5 h-3.5 mr-1.5" /> 
-                  {aiPanelOpen ? "Close AI Tutor" : "Ask AI Tutor"}
+                  {aiPanelOpen ? "Close AI" : "Ask AI"}
                 </Button>
 
                 <Button
@@ -494,7 +598,7 @@ function ModuleStudyPage() {
                   onClick={() => setActiveTopicIndex(activeTopicIndex + 1)}
                   variant="outline"
                   size="sm"
-                  className="glass border-white/15 text-xs"
+                  className="glass border-white/15 text-xs flex-1 sm:flex-none justify-center"
                 >
                   Next <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>

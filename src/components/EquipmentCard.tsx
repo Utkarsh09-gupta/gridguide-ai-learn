@@ -39,8 +39,9 @@ export function EquipmentCard({ e, i = 0 }: { e: DbEquipment; i?: number }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.35, delay: i * 0.03 }}
+      viewport={{ once: true, margin: "0px" }}
+      transition={{ duration: 0.3, delay: Math.min(i * 0.03, 0.2) }}
+      className="gpu-layer h-full"
     >
       <Link
         to="/equipment/$id"
@@ -51,6 +52,8 @@ export function EquipmentCard({ e, i = 0 }: { e: DbEquipment; i?: number }) {
           <img
             src={e.imageUrl || `/images/equipment/${e.id}.png`}
             alt={e.name}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-2 left-2 grid place-items-center w-8 h-8 rounded-lg bg-navy/80 backdrop-blur-md border border-white/10 text-cyan group-hover:text-electric transition-colors">

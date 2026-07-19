@@ -127,9 +127,9 @@ function HeroIllustration() {
       transition={{ duration: 0.6 }}
       className="relative"
     >
-      <div className="glass-strong rounded-3xl p-6 relative overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-electric/30 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-cyan/20 blur-3xl" />
+      <div className="glass-strong rounded-3xl p-6 relative overflow-hidden gpu-layer">
+        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-electric/25 blur-xl md:blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-cyan/15 blur-xl md:blur-3xl pointer-events-none" />
 
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -145,16 +145,15 @@ function HeroIllustration() {
             { icon: Activity, label: "PMU", val: "Sync" },
             { icon: Radio, label: "SCADA", val: "104" },
           ].map((x, i) => (
-            <motion.div
+            <div
               key={x.label}
-              animate={{ y: [0, -4, 0] }}
-              transition={{ duration: 3 + i, repeat: Infinity }}
-              className="glass rounded-xl p-3"
+              className="glass gpu-layer rounded-xl p-3 animate-float"
+              style={{ animationDelay: `${i * 1.5}s` }}
             >
               <x.icon className="w-4 h-4 text-cyan" />
               <div className="mt-2 text-xs text-muted-foreground">{x.label}</div>
               <div className="text-sm font-semibold">{x.val}</div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
@@ -204,7 +203,7 @@ function HeroIllustration() {
 
 function Stats() {
   return (
-    <section className="mx-auto max-w-7xl px-4">
+    <section className="mx-auto max-w-7xl px-4 content-visible">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {stats.map((s, i) => (
           <motion.div
@@ -212,8 +211,8 @@ function Stats() {
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: i * 0.05 }}
-            className="glass rounded-2xl p-5"
+            transition={{ delay: Math.min(i * 0.04, 0.2) }}
+            className="glass gpu-layer rounded-2xl p-5"
           >
             <div className="text-3xl md:text-4xl font-semibold text-gradient font-display">{s.value}</div>
             <div className="mt-1 text-sm text-muted-foreground">{s.label}</div>
@@ -233,7 +232,7 @@ function QuickActions() {
     { icon: GitBranch, label: "View Flowcharts" },
   ];
   return (
-    <section className="mx-auto max-w-7xl px-4 mt-14">
+    <section className="mx-auto max-w-7xl px-4 mt-14 content-visible">
       <SectionHead eyebrow="Quick actions" title="Jump straight in" />
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6">
         {actions.map((a, i) => (
@@ -242,9 +241,9 @@ function QuickActions() {
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: i * 0.04 }}
+            transition={{ delay: Math.min(i * 0.03, 0.15) }}
             whileHover={{ y: -2 }}
-            className="glass rounded-2xl p-4 text-left group hover:border-electric/40 transition-colors"
+            className="glass gpu-layer rounded-2xl p-4 text-left group hover:border-electric/40 transition-colors"
           >
             <div className="grid place-items-center w-10 h-10 rounded-lg bg-white/5 border border-white/10 text-cyan group-hover:text-electric transition">
               <a.icon className="w-5 h-5" />
@@ -260,7 +259,7 @@ function QuickActions() {
 function Roadmap({ modules }: { modules: any[] }) {
   const activeModules = modules && modules.length > 0 ? modules : staticModules;
   return (
-    <section className="mx-auto max-w-7xl px-4 mt-20">
+    <section className="mx-auto max-w-7xl px-4 mt-20 content-visible">
       <SectionHead eyebrow="Learning roadmap" title={`${activeModules.length} modules · from fundamentals to WAMS`} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-8">
         {activeModules.map((m, i) => <ModuleCard key={m.id} m={m} i={i} />)}
@@ -271,7 +270,7 @@ function Roadmap({ modules }: { modules: any[] }) {
 
 function Equipment() {
   return (
-    <section className="mx-auto max-w-7xl px-4 mt-20">
+    <section className="mx-auto max-w-7xl px-4 mt-20 content-visible">
       <SectionHead eyebrow="Featured equipment" title="Every device in the control room" />
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 mt-8">
         {equipment.map((e, i) => <EquipmentCard key={e.id} e={e} i={i} />)}
@@ -282,7 +281,7 @@ function Equipment() {
 
 function Continue() {
   return (
-    <section className="mx-auto max-w-7xl px-4 mt-20">
+    <section className="mx-auto max-w-7xl px-4 mt-20 content-visible">
       <SectionHead eyebrow="Recent learning" title="Continue where you left off" />
       <div className="grid gap-4 md:grid-cols-3 mt-8">
         {recentLearning.map((r, i) => (
@@ -291,8 +290,8 @@ function Continue() {
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: i * 0.05 }}
-            className="glass rounded-2xl p-5"
+            transition={{ delay: Math.min(i * 0.04, 0.15) }}
+            className="glass gpu-layer rounded-2xl p-5"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -314,7 +313,7 @@ function Continue() {
 
 function Why() {
   return (
-    <section className="mx-auto max-w-7xl px-4 mt-24">
+    <section className="mx-auto max-w-7xl px-4 mt-24 content-visible">
       <SectionHead eyebrow="Why GridGuide AI" title="Built like a product, not a college project" />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mt-8">
         {whyPoints.map((w, i) => (
@@ -323,8 +322,8 @@ function Why() {
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: i * 0.03 }}
-            className="glass rounded-2xl p-5"
+            transition={{ delay: Math.min(i * 0.03, 0.15) }}
+            className="glass gpu-layer rounded-2xl p-5"
           >
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-electric to-cyan grid place-items-center">
               <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
@@ -340,8 +339,8 @@ function Why() {
 
 function CTA() {
   return (
-    <section className="mx-auto max-w-7xl px-4 mt-24">
-      <div className="glass-strong relative rounded-3xl p-10 md:p-14 overflow-hidden">
+    <section className="mx-auto max-w-7xl px-4 mt-24 content-visible">
+      <div className="glass-strong gpu-layer relative rounded-3xl p-10 md:p-14 overflow-hidden">
         <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
         <div className="absolute -top-20 right-0 w-80 h-80 rounded-full bg-electric/25 blur-3xl" />
         <div className="relative flex flex-col md:flex-row md:items-center gap-6 justify-between">
